@@ -38,35 +38,38 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 ## Folder Structure
 
 Debtors-Accounting/
-│
-├─ README.md
+├── README.md
+├── package.json
+├── node_modules/           # Node dependencies
+├── public/                 # Public assets
+├── src/                    # React frontend
+│   ├── components/         # React components (Login, Invoice, Sidebar, etc.)
+│   ├── controler/          # React controllers / helpers
+│   ├── styles/             # CSS / Tailwind styles
+│   ├── App.js
+│   └── index.js
+├── backend/                # FastAPI backend
+│   └── fastAPi/
+│       ├── main.py         # FastAPI app entry
+│       ├── models.py       # Pydantic models
+│       ├── requirements.txt
+│       ├── routers/        # API endpoints
+│       │   ├── authRouter.py
+│       │   ├── customerRouter.py
+│       │   ├── itemRouter.py
+│       │   ├── invoiceRouter.py
+│       │   ├── stateRouter.py
+│       │   ├── statusRouter.py
+│       │   └── uomRouter.py
+│       └── datalayer/      # Database layer
+│           ├── connector.py
+│           ├── config.py
+│           ├── dbconfig.xml
+│           ├── entities.py
+│           ├── exceptions.py
+│           └── managers.py
+└── ScreenShot/             # Screenshots & videos of app
 
-
-
-├─ package.json
-├─ src/
-│  ├─ components/           # React components
-│  ├─ controler/            # React controllers
-│  ├─ style                   # CSS / Tailwind styles
-│  └─ App.js
-├─ backend/
-│  └─ fastAPi/
-│     ├─ routers/           # FastAPI routers
-│     │  ├─ authRouter.py
-│     │  ├─ customerRouter.py
-│     │  ├─ itemRouter.py
-│     │  ├─ invoiceRouter.py
-│     │  ├─ stateRouter.py
-│     │  ├─ statusRouter.py
-│     │  └─ uomRouter.py
-│     └─ datalayer/         # Database layer
-│        ├─ connector.py
-│        ├─ config.py
-│        ├─ dbconfig.xml
-│        ├─ entities.py
-│        ├─ exceptions.py
-│        └─ managers.py
-├─ ScreenShot/              # Screenshots of app
 
 ### Backend Setup (FastAPI)
 
