@@ -1,100 +1,99 @@
-\# TM Debtors Accounting 💰📊
+# TM Debtors Accounting System
+
+A full-stack Debtors Accounting System built with React (frontend) and FastAPI (backend) with Oracle Database integration.
+
+## Table of Contents
+
+1. [Project Overview](#project-overview)
+2. [Features](#features)
+3. [Folder Structure](#folder-structure)
+4. [Setup & Installation](#setup--installation)
+5. [Running the Project](#running-the-project)
+6. [Screenshots](#screenshots)
+7. [Technologies Used](#technologies-used)
 
 
+## Project Overview
 
-A full-stack accounting app to manage debtors, invoices, and traders with JWT authentication.
+TM Debtors Accounting System is designed to manage customers, traders, invoices, and items. It provides features like:
 
-
-
-!\[screenshot](ScreenShot/s1.jpg)
-
-
-
-\## 🔧 Tech Stack
-
+- Add, update, and remove customers and traders
+- Create and manage invoices with multiple items
+- Manage items and unit of measurement
+- Role-based user authentication
+- Dynamic dashboard for tracking financial data
 
 
-\- 🌐 Frontend: React, Tailwind CSS, Material UI
+## Features
 
-\- 🐍 Backend: Python (Flask/FastAPI) with Oracle DB
-
-\- 🔐 Auth: JWT-based Login/Register
-
-\- 🎦 Screenshots and demo video included
-
-
-
-\## 📸 Screenshots
+- React-based responsive UI
+- FastAPI backend with modular routers
+- Oracle database integration
+- JWT-based authentication (optional)
+- CRUD operations for all entities
+- Alert and notification system in frontend
+- Accordion-style invoice display
 
 
+## Folder Structure
 
-| Dashboard | Invoice Form | Invoice List | Login |
+Debtors-Accounting/
+│
+├─ README.md
+├─ package.json
+├─ src/
+│  ├─ components/           # React components
+│  ├─ controler/            # React controllers
+│  ├─ style                   # CSS / Tailwind styles
+│  └─ App.js
+├─ backend/
+│  └─ fastAPi/
+│     ├─ routers/           # FastAPI routers
+│     │  ├─ authRouter.py
+│     │  ├─ customerRouter.py
+│     │  ├─ itemRouter.py
+│     │  ├─ invoiceRouter.py
+│     │  ├─ stateRouter.py
+│     │  ├─ statusRouter.py
+│     │  └─ uomRouter.py
+│     └─ datalayer/         # Database layer
+│        ├─ connector.py
+│        ├─ config.py
+│        ├─ dbconfig.xml
+│        ├─ entities.py
+│        ├─ exceptions.py
+│        └─ managers.py
+├─ ScreenShot/              # Screenshots of app
 
-|-----------|--------------|--------------|-------|
+### Backend Setup (FastAPI)
 
-| !\[](ScreenShot/s1.jpg) | !\[](ScreenShot/s2.jpg) | !\[](ScreenShot/s3.jpg) | !\[](ScreenShot/s4.jpg) |
+cd backend/fastAPi
 
+# Create virtual environment
+python -m venv venv
+# Activate environment
+venv\Scripts\activate   # Windows
 
+source venv/bin/activate # Linux/Mac
+# Install dependencies
 
-\## 🎬 Demo
+pip install -r requirements.txt
 
+# Run FastAPI server
+uvicorn fastAPi.main:app --reload
 
+### Frontend Setup (React)
+cd ../../
 
-▶ Watch \[debtors.mp4](ScreenShot/debtors.mp4)
-
-
-
-\## 🚀 Getting Started
-
-
-
-\### 🔹 Frontend
-
-```bash
-
+# Install dependencies
 npm install
-
+# Run React dev server
 npm start
 
 
+## Technologies Used
 
-
-
-Backend
-
-cd backend
-
-python server/DebtorsAccounting.py
-
-
-
-
-
-🧾 Folder Structure
-
-Debtors-Accounting/
-
-├── backend/
-
-├── src/
-
-├── ScreenShot/
-
-├── public/
-
-├── package.json
-
-├── .gitignore
-
-└── README.md
-
-
-
-🙋‍♂️ Author
-
-By Ankit Bundela
-
-GitHub  :-https://github.com/Ankit-bundela
-
-LinkedIn:-https://www.linkedin.com/in/ankit-bundela-34222a283/
-
+- **Frontend:** React, Material-UI
+- **Backend:** FastAPI, Python.
+- **Database:** Oracle DB
+- **Version Control:** Git, GitHub

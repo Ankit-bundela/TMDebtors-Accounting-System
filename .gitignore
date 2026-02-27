@@ -1,6 +1,13 @@
-node_modules/
-.env
+# Python
 __pycache__/
 *.pyc
-ScreenShot/debtors.mp4
-public/student/mp1.mp4 
+venv/
+
+# Node / React
+node_modules/
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db

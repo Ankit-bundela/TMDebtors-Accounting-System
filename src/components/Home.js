@@ -1,218 +1,23 @@
-/*import React from "react";
-import {
-  Avatar,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  IconButton,
-  Paper,
-  Typography,
-  Grid,
-  Tooltip,
-  Box,
-} from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import PersonIcon from "@material-ui/icons/Person";
-import ChatIcon from "@material-ui/icons/Chat";
-import VideoCamIcon from "@material-ui/icons/Videocam";
-import GroupIcon from "@material-ui/icons/Group";
-import ReceiptIcon from "@material-ui/icons/Receipt";
-import HourglassFullIcon from "@material-ui/icons/HourglassFull";
-import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 
-const useStyles = makeStyles((theme) => ({
-  mainContainer: {
-    padding: theme.spacing(4),
-    background: "#f0f2f5",
-    minHeight: "100vh",
-  },
-  sectionTitle: {
-    fontWeight: 700,
-    color: "#34495e",
-    textAlign: "center",
-    marginBottom: theme.spacing(4),
-  },
-  paper: {
-    padding: theme.spacing(3),
-    borderRadius: 12,
-    background: "#ffffff",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-    marginBottom: theme.spacing(4),
-  },
-  card: {
-    borderRadius: 12,
-    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-    "&:hover": {
-      transform: "translateY(-5px)",
-      boxShadow: "0 8px 30px rgba(0,0,0,0.2)",
-    },
-  },
-  cardContent: {
-    textAlign: "center",
-    color: "#555",
-  },
-  cardActions: {
-    justifyContent: "center",
-  },
-  avatar: {
-    backgroundColor: theme.palette.primary.main,
-  },
-  widgetCard: {
-    borderRadius: 12,
-    padding: theme.spacing(2),
-    background: "#ffffff",
-    boxShadow: "0 3px 12px rgba(0,0,0,0.1)",
-    display: "flex",
-    alignItems: "center",
-    gap: theme.spacing(2),
-  },
-  widgetIcon: {
-    backgroundColor: theme.palette.secondary.main,
-    color: "#fff",
-    width: 48,
-    height: 48,
-  },
-  widgetText: {
-    display: "flex",
-    flexDirection: "column",
-  },
-}));
-
-const dashboardData = [
-  {
-    label: "Total Customers",
-    value: 48,
-    icon: <GroupIcon />,
-  },
-  {
-    label: "Total Invoices",
-    value: 124,
-    icon: <ReceiptIcon />,
-  },
-  {
-    label: "Pending Dues",
-    value: "₹13,200",
-    icon: <HourglassFullIcon />,
-  },
-  {
-    label: "Last Invoice Date",
-    value: "15 July 2025",
-    icon: <CalendarTodayIcon />,
-  },
-];
-
-const cardData = [
-  {
-    title: "SBI - Manager",
-    subheader: "Aksh Bundela",
-    description: "Responsible for managing the SBI branch operations.",
-  },
-  {
-    title: "HDFC - Supervisor",
-    subheader: "Aksh Bundela",
-    description: "Supervises HDFC bank's daily activities.",
-  },
-  {
-    title: "PNB - Executive",
-    subheader: "Aksh Bundela",
-    description: "Leading customer engagement at PNB.",
-  },
-  {
-    title: "ICICI - Manager",
-    subheader: "Aksh Bundela",
-    description: "Ensures compliance and service delivery at ICICI.",
-  },
-  {
-    title: "Axis Bank - Relationship Manager",
-    subheader: "Aksh Bundela",
-    description: "Building long-term client relations at Axis Bank.",
-  },
-];
-
-const Home = () => {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.mainContainer}>
-      <Typography variant="h4" className={classes.sectionTitle}>
-        TM Debtors Accounting
-      </Typography>
-
-      <Grid container spacing={3} style={{ marginBottom: 32 }}>
-        {dashboardData.map((widget, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Paper className={classes.widgetCard}>
-              <Avatar className={classes.widgetIcon}>{widget.icon}</Avatar>
-              <div className={classes.widgetText}>
-                <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
-                  {widget.label}
-                </Typography>
-                <Typography variant="h6" color="primary">
-                  {widget.value}
-                </Typography>
-              </div>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Paper className={classes.paper} elevation={3}>
-        <Grid container spacing={3}>
-          {cardData.map((card, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card className={classes.card}>
-                <CardHeader
-                  avatar={
-                    <Avatar className={classes.avatar}>
-                      <PersonIcon />
-                    </Avatar>
-                  }
-                  title={card.title}
-                  subheader={card.subheader}
-                />
-                <CardContent className={classes.cardContent}>
-                  <Typography variant="body1">{card.description}</Typography>
-                </CardContent>
-                <CardActions className={classes.cardActions}>
-                  <Tooltip title="Chat">
-                    <IconButton color="primary">
-                      <ChatIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Video Call">
-                    <IconButton color="secondary">
-                      <VideoCamIcon />
-                    </IconButton>
-                  </Tooltip>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Paper>
-    </div>
-  );
-};
-
-export default Home;
-*/
 import React, { useEffect, useState } from "react";
 import TMAlert from "./TMAlert";
+import { Person, Email, VerifiedUser, CalendarToday, Money } from "@material-ui/icons";
 
 const Home = () => {
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ open: false, message: "" });
 
+  // Fetch data
   const getCustomers = async () => {
     try {
-      const response = await fetch("/getCustomers");
-      if (!response.ok) throw new Error("Failed to fetch customers");
-      const data = await response.json();
+      const res = await fetch("/getCustomers");
+      if (!res.ok) throw new Error("Failed to fetch customers");
+      const data = await res.json();
       return data.success ? data.data : [];
-    } catch (err) {
+    } catch {
       setAlert({ open: true, message: "Failed to fetch customers" });
       return [];
     }
@@ -220,19 +25,31 @@ const Home = () => {
 
   const getAllInvoices = async () => {
     try {
-      const response = await fetch("/getAllInvoices");
-      if (!response.ok) throw new Error("Failed to fetch invoices");
-      const data = await response.json();
+      const res = await fetch("/getAllInvoices");
+      if (!res.ok) throw new Error("Failed to fetch invoices");
+      const data = await res.json();
       return data.success ? data.data : [];
-    } catch (err) {
+    } catch {
       setAlert({ open: true, message: "Failed to fetch invoices" });
       return [];
     }
   };
 
+  const getAllUsers = async () => {
+    try {
+      const res = await fetch("/getAllUsers");
+      if (!res.ok) throw new Error("Failed to fetch users");
+      const data = await res.json();
+      return data.success ? data.data : [];
+    } catch {
+      setAlert({ open: true, message: "Failed to fetch users" });
+      return [];
+    }
+  };
+
   const getLastInvoiceDate = () => {
-    if (invoices.length === 0) return "N/A";
-    const dates = invoices.map(inv => new Date(inv.date));
+    if (!invoices.length) return "N/A";
+    const dates = invoices.map((inv) => new Date(inv.date || inv.invoiceDate));
     const lastDate = new Date(Math.max(...dates));
     return lastDate.toLocaleDateString();
   };
@@ -249,8 +66,10 @@ const Home = () => {
     const fetchData = async () => {
       const cust = await getCustomers();
       const inv = await getAllInvoices();
+      const usersList = await getAllUsers();
       setCustomers(cust);
       setInvoices(inv);
+      setUsers(usersList);
       setLoading(false);
     };
     fetchData();
@@ -258,13 +77,13 @@ const Home = () => {
 
   const loadingSkeleton = (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {[1, 2, 3, 4].map(i => (
+      {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
-          className="rounded-2xl bg-gradient-to-br from-gray-200 to-gray-300 p-6 animate-pulse"
+          className="rounded-2xl bg-gray-200 p-6 animate-pulse flex flex-col justify-between"
         >
-          <div className="h-4 w-24 bg-gray-300 rounded mb-4"></div>
-          <div className="h-8 w-32 bg-gray-400 rounded"></div>
+          <div className="h-4 w-20 bg-gray-300 rounded mb-3"></div>
+          <div className="h-10 w-32 bg-gray-400 rounded"></div>
         </div>
       ))}
     </div>
@@ -272,40 +91,106 @@ const Home = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-[#f8fbff] to-[#edf4fc]">
-      <h1 className="text-4xl font-bold text-gray-800 mb-8">📊 Dashboard</h1>
+      <h1 className="text-4xl font-extrabold text-gray-800 mb-10">📊 Dashboard</h1>
 
       {alert.open && (
-        <TMAlert message={alert.message} onClose={() => setAlert({ open: false, message: "" })} />
+        <TMAlert
+          message={alert.message}
+          onClose={() => setAlert({ open: false, message: "" })}
+        />
       )}
 
       {loading ? (
         loadingSkeleton
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card */}
-          <div className="rounded-2xl bg-white shadow-xl p-6 border border-transparent hover:border-blue-300 hover:shadow-blue-200 transition-all duration-300">
-            <p className="text-sm text-gray-500 mb-1">Total Customers</p>
-            <p className="text-4xl font-bold text-blue-600">{customers.length}</p>
+        <>
+          {/* Dashboard Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <StatCard
+              title="Total Customers"
+              value={customers.length}
+              icon={<Person className="text-blue-500" />}
+              bgGradient="from-blue-100 to-blue-200"
+            />
+            <StatCard
+              title="Total Invoices"
+              value={invoices.length}
+              icon={<VerifiedUser className="text-green-500" />}
+              bgGradient="from-green-100 to-green-200"
+            />
+            <StatCard
+              title="Last Invoice Date"
+              value={getLastInvoiceDate()}
+              icon={<CalendarToday className="text-purple-500" />}
+              bgGradient="from-purple-100 to-purple-200"
+            />
+            <StatCard
+              title="Pending Dues"
+              value={`₹${getPendingDues()}`}
+              icon={<Money className="text-red-500" />}
+              bgGradient="from-red-100 to-red-200"
+            />
           </div>
 
-          <div className="rounded-2xl bg-white shadow-xl p-6 border border-transparent hover:border-green-300 hover:shadow-green-200 transition-all duration-300">
-            <p className="text-sm text-gray-500 mb-1">Total Invoices</p>
-            <p className="text-4xl font-bold text-green-600">{invoices.length}</p>
+          {/* Users Table */}
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Registered Users</h2>
+          <div className="overflow-x-auto bg-white rounded-2xl shadow p-4">
+            <table className="min-w-full text-gray-700 table-auto border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left">#</th>
+                  <th className="px-4 py-2 text-left flex items-center gap-1">
+                    <Person fontSize="small" /> Name
+                  </th>
+                  <th className="px-4 py-2 text-left flex items-center gap-1">
+                    <Email fontSize="small" /> Email
+                  </th>
+                  <th className="px-4 py-2 text-left flex items-center gap-1">
+                    <VerifiedUser fontSize="small" /> Role
+                  </th>
+                  <th className="px-4 py-2 text-left flex items-center gap-1">
+                    <CalendarToday fontSize="small" /> Created At
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user, idx) => (
+                  <tr
+                    key={user.id}
+                    className={`border-b hover:bg-gray-50 transition-all ${
+                      user.role === "admin" ? "bg-yellow-50" : ""
+                    }`}
+                  >
+                    <td className="px-4 py-2">{idx + 1}</td>
+                    <td className="px-4 py-2">{user.name?.trim()}</td>
+                    <td className="px-4 py-2">{user.email?.trim()}</td>
+                    <td className="px-4 py-2 capitalize">{user.role}</td>
+                    <td className="px-4 py-2">
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          <div className="rounded-2xl bg-white shadow-xl p-6 border border-transparent hover:border-red-300 hover:shadow-red-200 transition-all duration-300">
-            <p className="text-sm text-gray-500 mb-1">Pending Dues</p>
-            <p className="text-4xl font-bold text-red-500">₹{getPendingDues()}</p>
-          </div>
-
-          <div className="rounded-2xl bg-white shadow-xl p-6 border border-transparent hover:border-purple-300 hover:shadow-purple-200 transition-all duration-300">
-            <p className="text-sm text-gray-500 mb-1">Last Invoice Date</p>
-            <p className="text-xl font-bold text-purple-600">{getLastInvoiceDate()}</p>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
 };
+
+// Reusable Dashboard Card
+const StatCard = ({ title, value, icon, bgGradient }) => (
+  <div
+    className={`rounded-2xl shadow-lg p-6 border border-transparent hover:border-gray-300 hover:shadow-xl transition-all duration-300 bg-gradient-to-r ${bgGradient} flex flex-col justify-between`}
+  >
+    <div className="flex items-center gap-2 mb-2">
+      {icon} <span className="text-sm text-gray-600">{title}</span>
+    </div>
+    <div className="text-3xl font-bold text-gray-800">{value}</div>
+  </div>
+);
 
 export default Home;

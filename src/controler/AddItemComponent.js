@@ -7,7 +7,9 @@ import {
   Typography,
   Paper,
   Box,
-  Divider
+  Divider,
+  Grid,
+  InputAdornment
 } from "@material-ui/core";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { Add as AddIcon } from "@material-ui/icons";
@@ -153,22 +155,15 @@ const AddItemComponent = ({ closeDialog }) => {
   };
 
   return (
-    <Paper
-      elevation={3}
-      style={{
-        padding: "24px",
-        maxWidth: "500px",
-        margin: "0 auto"
-      }}
-    >
+    <Paper elevation={4} style={{ padding: "32px", borderRadius: "16px", maxWidth: 550, margin: "auto" }}>
       {loading && <LinearProgress />}
 
       <Box mb={2} textAlign="center">
-        <Typography variant="h6" gutterBottom>
-          Add New Item
+        <Typography variant="h5" style={{ fontWeight: 600 }}>
+          Add Item Details
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Enter item details and taxes.
+          Fill all necessary fields to register a new item.
         </Typography>
       </Box>
 
@@ -176,67 +171,62 @@ const AddItemComponent = ({ closeDialog }) => {
         label="Item Name"
         value={name}
         onChange={itemNameChanged}
-        placeholder="Enter Item Name"
         helperText={itemNameHelperText}
         error={itemNameInvalid}
-        variant="outlined"
-        margin="dense"
         fullWidth
+        margin="normal"
+        variant="outlined"
       />
 
-      <TextField
-        label="CGST (%)"
-        placeholder="Enter CGST"
-        type="number"
-        value={cgst}
-        onChange={(ev) =>
-          validateTax(ev.target.value, setCgst, setCgstInvalid, setCgstHelperText)
-        }
-        helperText={cgstHelperText}
-        error={cgstInvalid}
-        variant="outlined"
-        margin="dense"
-        fullWidth
-      />
-
-      <TextField
-        label="SGST (%)"
-        placeholder="Enter SGST"
-        type="number"
-        value={sgst}
-        onChange={(ev) =>
-          validateTax(ev.target.value, setSgst, setSgstInvalid, setSgstHelperText)
-        }
-        helperText={sgstHelperText}
-        error={sgstInvalid}
-        variant="outlined"
-        margin="dense"
-        fullWidth
-      />
-
-      <TextField
-        label="IGST (%)"
-        placeholder="Enter IGST"
-        type="number"
-        value={igst}
-        onChange={(ev) =>
-          validateTax(ev.target.value, setIgst, setIgstInvalid, setIgstHelperText)
-        }
-        helperText={igstHelperText}
-        error={igstInvalid}
-        variant="outlined"
-        margin="dense"
-        fullWidth
-      />
+      <Grid container spacing={2}>
+        <Grid item xs={4}>
+          <TextField
+            label="CGST (%)"
+            type="number"
+            value={cgst}
+            onChange={(e) => validateTax(e.target.value, setCgst, setCgstInvalid, setCgstHelperText)}
+            helperText={cgstHelperText}
+            error={cgstInvalid}
+            variant="outlined"
+            fullWidth
+            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <TextField
+            label="SGST (%)"
+            type="number"
+            value={sgst}
+            onChange={(e) => validateTax(e.target.value, setSgst, setSgstInvalid, setSgstHelperText)}
+            helperText={sgstHelperText}
+            error={sgstInvalid}
+            variant="outlined"
+            fullWidth
+            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <TextField
+            label="IGST (%)"
+            type="number"
+            value={igst}
+            onChange={(e) => validateTax(e.target.value, setIgst, setIgstInvalid, setIgstHelperText)}
+            helperText={igstHelperText}
+            error={igstInvalid}
+            variant="outlined"
+            fullWidth
+            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
+          />
+        </Grid>
+      </Grid>
 
       <TextField
         label="HSN Code"
-        placeholder="Enter HSN Code"
         value={hsnCode}
-        onChange={(ev) => setHsnCode(ev.target.value)}
-        variant="outlined"
-        margin="dense"
+        onChange={(e) => setHsnCode(e.target.value)}
         fullWidth
+        margin="normal"
+        variant="outlined"
       />
 
       <Autocomplete
@@ -244,25 +234,26 @@ const AddItemComponent = ({ closeDialog }) => {
         options={allUnits}
         getOptionLabel={(option) => option.name}
         value={selectedUnits}
-        onChange={(event, newValue) => setSelectedUnits(newValue)}
+        onChange={(e, newVal) => setSelectedUnits(newVal)}
         renderInput={(params) => (
           <TextField
             {...params}
-            variant="outlined"
-            label="Unit of Measurements"
+            label="Units of Measurement"
             placeholder="Select Units"
-            margin="dense"
+            variant="outlined"
+            margin="normal"
           />
         )}
-        style={{ marginTop: "8px" }}
       />
 
-      <Divider style={{ margin: "16px 0" }} />
+      <Divider style={{ margin: "24px 0" }} />
 
       <Button
         variant="contained"
         color="primary"
         fullWidth
+        size="large"
+        style={{ borderRadius: 8, padding: "10px 0", fontWeight: 600 }}
         startIcon={<AddIcon />}
         onClick={addItem}
         disabled={loading}
@@ -280,7 +271,6 @@ const AddItemComponent = ({ closeDialog }) => {
     </Paper>
   );
 };
-
 export default AddItemComponent;
 */
 import React, { useState, useEffect } from "react";
@@ -396,28 +386,34 @@ const AddItemComponent = ({ closeDialog }) => {
     setLoading(true);
 
     try {
+      const payload = {
+        code: Date.now(), // Unique code
+        name,
+        cgst: parseFloat(cgst) || 0,
+        sgst: parseFloat(sgst) || 0,
+        igst: parseFloat(igst) || 0,
+        hsnCode: hsnCode.trim(),
+        unitofMeasurments: selectedUnits.map(uom => ({
+          code: uom.code,
+          name: uom.name
+        }))
+      };
+
       const response = await fetch("/addItem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          cgst: parseFloat(cgst) || 0,
-          sgst: parseFloat(sgst) || 0,
-          igst: parseFloat(igst) || 0,
-          hsnCode: hsnCode.trim(),
-          unitofMeasurments: selectedUnits.map(uom => ({
-            code: uom.code,
-            name: uom.name
-          }))
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
       setLoading(false);
+
       if (data.success) {
         setSnackbarMessage("✅ Item added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
+
+        // reset form
         setName("");
         setCgst("");
         setSgst("");

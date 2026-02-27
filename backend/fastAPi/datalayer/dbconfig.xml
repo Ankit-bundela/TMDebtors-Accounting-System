@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<database>
+  <architecture>Oracle</architecture>
+  <version>19c</version>
+  <host>localhost</host>
+  <port>1521</port>
+  <user>hr</user>
+  <password>hr</password>
+  <name>xepdb1</name>
+</database>
