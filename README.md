@@ -37,28 +37,18 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 ## Folder Structure
 
 Debtors-Accounting/
-      node_modules
-      public
-      src/  
-          componets/
-           controler/
-├── node_modules/
-├── public/
-├── src/
-│   ├── components/      # React components
-│   ├── controler/       # React controllers
-│   ├── styles/          # CSS / Tailwind
-│   ├── App.js
-│   └── index.js
-├── backend/
-│   └── fastAPi/
-│       ├── main.py
-│       ├── models.py
-│       ├── requirements.txt
-│       ├── routers/     # API endpoints
-│       └── datalayer/  # DB logic
-└── ScreenShot/          # Screenshots & videos
 
+      src  /  Components
+              controller
+      Backend/
+            FastAPI/
+
+            main.py
+            routes/
+            models.py
+
+            
+            
 
 ## Screenshots
 
