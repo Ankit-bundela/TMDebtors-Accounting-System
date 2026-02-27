@@ -54,6 +54,21 @@ Debtors-Accounting/
 │       └── datalayer/  # DB logic
 └── ScreenShot/          # Screenshots & videos
 
+
+## Screenshots
+
+### Home Page
+![Home](ScreenShot/s1.jpg)
+![Dashboard](ScreenShot/s2.jpg)
+
+### Invoice Management
+![Invoice](ScreenShot/s3.jpg)
+![Item](ScreenShot/s4.jpg)
+
+### Authentication Management
+![Login](ScreenShot/s5.jpg)
+![Register](ScreenShot/s6.jpg)
+
 ### Backend Setup (FastAPI)
 
 cd backend/fastAPi
