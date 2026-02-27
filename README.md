@@ -40,6 +40,9 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 Debtors-Accounting/
 │
 ├─ README.md
+
+
+
 ├─ package.json
 ├─ src/
 │  ├─ components/           # React components
