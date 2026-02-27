@@ -37,6 +37,11 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 ## Folder Structure
 
 Debtors-Accounting/
+      node_modules
+      public
+      src/  
+          componets/
+           controler/
 ├── node_modules/
 ├── public/
 ├── src/
