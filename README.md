@@ -35,17 +35,18 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 - Accordion-style invoice display
 
 ## Folder Structure
+## Folder Structure
 
 Debtors-Accounting/
-
-      src  /  Components
-              controller
-      Backend/
-            FastAPI/
-
-            main.py
-            routes/
-            models.py
+  src/
+    Components/
+    controller/
+  backend/
+    fastAPi/
+      main.py
+      routers/
+      models.py
+  ScreenShot/
 
             
             
