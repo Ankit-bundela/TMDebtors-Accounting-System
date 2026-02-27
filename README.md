@@ -29,7 +29,7 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 - React-based responsive UI
 - FastAPI backend with modular routers
 - Oracle database integration
-- JWT-based authentication (optional)
+- authentication (optional)
 - CRUD operations for all entities
 - Alert and notification system in frontend
 - Accordion-style invoice display
