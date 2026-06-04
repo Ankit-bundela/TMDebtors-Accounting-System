@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 venv/
 
+# Environment 
+.env
+backend/fastAPi/.env
+
 # Node / React
 node_modules/
 build/

@@ -1,26 +1,24 @@
-import React from "react";  
-import {  Button, Dialog, DialogActions,  CircularProgress,DialogContent, DialogTitle, Fab, Grid, makeStyles, Paper, Typography } from "@material-ui/core";
-import { useState } from "react";
-import {TextField} from "@material-ui/core";
-import { Add, Delete, Edit } from "@material-ui/icons";
+import { apiRequest } from "../controler/api";
+import { Divider } from "@material-ui/core";
+import React, { useState, useEffect } from "react";
+import {
+    Button, Dialog, DialogActions, CircularProgress,
+    DialogContent, DialogTitle, Fab, Grid,
+    makeStyles, Paper, Typography, TextField
+} from "@material-ui/core";
+import { Add } from "@material-ui/icons";
 import TMAlert from "./TMAlert";
-import {Box} from "@material-ui/core";
 
-
+// ================= STYLE =================
 const mystyles = makeStyles(() => ({
-    mainContainer: {
-        display: "flex"
-    },
+    mainContainer: { display: "flex" },
     leftContainer: {
         marginLeft: "5px",
         paddingRight: "10px",
         borderRight: "1px solid black",
         padding: "2px"
     },
-    rightContainer: {
-        flexGrow: 1,
-        marginLeft: "20px"
-    },
+    rightContainer: { flexGrow: 1, marginLeft: "20px" },
     leftCustomer: {
         width: "100%",
         backgroundColor: "#d14c13",
@@ -29,322 +27,277 @@ const mystyles = makeStyles(() => ({
     }
 }));
 
-const getCustomers = () => {
-    var promise=new Promise((resolve, reject) => {
-        fetch('/getCustomers').then((response) => {
-                if (!response.ok) throw Error("OOPs server is not responding. Please try after some time.");
-                return response.json();
-            }).then((customer)=>{
-                 resolve(customer)
-            }).catch((error) =>{
-                 reject(error.message)});
-    });
-    return promise;
-};
-const addCustomer = (customer) => {
-    return new Promise((resolve) => {
-        const dataString = `name=${encodeURIComponent(customer.name)}&address=${encodeURIComponent(customer.address)}&stateCode=${customer.stateCode}&regTitle1=${encodeURIComponent(customer.regTitle1 || '')}&regValue1=${encodeURIComponent(customer.regValue1 || '')}&regTitle2=${encodeURIComponent(customer.regTitle2 || '')}&regValue2=${encodeURIComponent(customer.regValue2 || '')}&regTitle3=${encodeURIComponent(customer.regTitle3 || '')}&regValue3=${encodeURIComponent(customer.regValue3 || '')}&contact1=${encodeURIComponent(customer.contact1 || '')}&contact2=${encodeURIComponent(customer.contact2 || '')}&contact3=${encodeURIComponent(customer.contact3 || '')}`;
-
-        fetch("/addCustomer", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: dataString
-        })
-        .then(response => response.json())
-        .then(responseJSON => resolve(responseJSON))
-        .catch(error => resolve({ success: false, error: error.toString() }));
-    });
-};
-const updateCustomer = (customer) => {
-    return new Promise((resolve) => {
-        const dataString = `code=${encodeURIComponent(customer.code)}&name=${encodeURIComponent(customer.name || '')}&address=${encodeURIComponent(customer.address || '')}&stateCode=${encodeURIComponent(customer.stateCode || '')}&regTitle1=${encodeURIComponent(customer.regTitle1 || '')}&regValue1=${encodeURIComponent(customer.regValue1 || '')}&regTitle2=${encodeURIComponent(customer.regTitle2 || '')}&regValue2=${encodeURIComponent(customer.regValue2 || '')}&regTitle3=${encodeURIComponent(customer.regTitle3 || '')}&regValue3=${encodeURIComponent(customer.regValue3 || '')}&contact1=${encodeURIComponent(customer.contact1 || '')}&contact2=${encodeURIComponent(customer.contact2 || '')}&contact3=${encodeURIComponent(customer.contact3 || '')}`;
-
-        fetch("/updateCustomer", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: dataString
-        })
-        .then(response => response.json())
-        .then(responseJSON => resolve(responseJSON))
-        .catch(error => resolve({ success: false, error: error.toString() }));
-    });
-};
-const removeCustomer = (customerCode) => {
-    return new Promise((resolve) => {
-        const dataString = `code=${encodeURIComponent(customerCode)}`;
-
-        fetch("/removeCustomer", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: dataString
-        })
-        .then(response => response.json())
-        .then(responseJSON => resolve(responseJSON))
-        .catch(error => resolve({ success: false, error: error.toString() }));
-    });
+// ================= API =================
+const getCustomers = async () => {
+    const res = await apiRequest("/getCustomers");
+    return await res.json();
 };
 
+const addCustomer = async (customer) => {
+    const data = new URLSearchParams(customer);
+    const res = await apiRequest("/addCustomer", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: data
+    });
+    return await res.json();
+};
 
-const Appsaccordian = () => {
-    const [customers, setCustomers] = React.useState([]);
-    const [selectedCustomer, setSelectedCustomer] = React.useState(null);
-     
-    React.useEffect(() => {
-  getCustomers().then(
-    (customer) => {
-      console.log("Customer API Response:", customer);
-      if (customer.success) {
-        setCustomers(customer.data || []);
-      } else {
-        alert("Error: " + customer.error);
-      }
-    },
-    (error) => {
-      alert(error);
-    }
-  );
-}, []);
+const updateCustomer = async (customer) => {
+    const data = new URLSearchParams(customer);
+    const res = await apiRequest("/updateCustomer", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: data
+    });
+    return await res.json();
+};
 
-    const handleCustomerSelect = (customer) => {
-        setSelectedCustomer(customer);
+const removeCustomer = async (code) => {
+    const data = new URLSearchParams();
+    data.append("code", code);
+
+    const res = await apiRequest("/removeCustomer", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: data
+    });
+
+    return await res.json();
+};
+
+// ================= MAIN =================
+/*const Appsaccordian = () => {
+    const [customers, setCustomers] = useState([]);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+    const refreshCustomers = async () => {
+        const res = await getCustomers();
+        if (res.success) setCustomers(res.data || []);
     };
+
+    useEffect(() => {
+        refreshCustomers();
+    }, []);
 
     const classes = mystyles();
 
     return (
         <div>
-            <HeaderComponent />
+            <Typography variant="h6">Customer Information</Typography>
+
             <div className={classes.mainContainer}>
                 <div className={classes.leftContainer}>
-                    <Typography variant="h5" className={classes.leftCustomer}>Customer</Typography>
-                    <CustomerNameComponenet customers={customers} onSelect={handleCustomerSelect} />
+                    <Typography className={classes.leftCustomer}>Customer</Typography>
+
+                    {customers.map(c => (
+                        <Button key={c.code} onClick={() => setSelectedCustomer(c)}>
+                            {c.name}
+                        </Button>
+                    ))}
                 </div>
+
                 <div className={classes.rightContainer}>
-                    <CustomerListComponent selectedCustomer={selectedCustomer} />
+                    <CustomerListComponent
+                        selectedCustomer={selectedCustomer}
+                        refreshCustomers={refreshCustomers}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};*/
+const Appsaccordian = () => {
+    const [customers, setCustomers] = useState([]);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+    const refreshCustomers = async () => {
+        const res = await getCustomers();
+        if (res.success) setCustomers(res.data || []);
+    };
+
+    useEffect(() => {
+        refreshCustomers();
+    }, []);
+
+    const classes = mystyles();
+
+    return (
+        <div>
+            <Typography variant="h6" style={{ marginBottom: 10 }}>
+                Customer Information
+            </Typography>
+
+            <div className={classes.mainContainer}>
+
+                {/* LEFT SIDE */}
+                <div className={classes.leftContainer}>
+                    <Typography className={classes.leftCustomer}>
+                        Customers
+                    </Typography>
+
+                    <Divider style={{ margin: "10px 0" }} />
+
+                    {/* ✅ VERTICAL LIST */}
+                    {customers.map(c => (
+                        <Paper
+                            key={c.code}
+                            elevation={selectedCustomer?.code === c.code ? 4 : 1}
+                            style={{
+                                padding: 10,
+                                marginBottom: 8,
+                                cursor: "pointer",
+                                background:
+                                    selectedCustomer?.code === c.code
+                                        ? "#e3f2fd"
+                                        : "#fff"
+                            }}
+                            onClick={() => setSelectedCustomer(c)}
+                        >
+                            <Typography variant="subtitle1">
+                                {c.name}
+                            </Typography>
+
+                            <Typography variant="body2" color="textSecondary">
+                                {c.contact1}
+                            </Typography>
+                        </Paper>
+                    ))}
+                </div>
+
+                {/* RIGHT SIDE */}
+                <div className={classes.rightContainer}>
+                    <CustomerListComponent
+                        selectedCustomer={selectedCustomer}
+                        refreshCustomers={refreshCustomers}
+                    />
                 </div>
             </div>
         </div>
     );
 };
 
-const HeaderComponent = () => {
-    return <Typography variant="h6" >Customer Information</Typography>
-};
+// ================= CUSTOMER VIEW =================
+const CustomerListComponent = ({ selectedCustomer, refreshCustomers }) => {
+    const [openAdd, setOpenAdd] = useState(false);
+    const [openEdit, setOpenEdit] = useState(false);
+    const [openDelete, setOpenDelete] = useState(false);
+    const [customerData, setCustomerData] = useState({});
 
-const CustomerNameComponenet = ({ customers = [], onSelect }) => {
-    return (
-        <div>
-            <fieldset>
-                <legend><Typography variant="h5">Customer Name</Typography></legend>
-                {
-                    customers.length > 0 ? (
-                        customers.map((customer) => (
-                            <span key={customer.code} style={{padding:"2px",margin:"2px"}} >
-                                <Fab variant="extended" color="primary" >
-                                <Button 
-                                    onClick={() => onSelect(customer)}
-                                >
-                                    {customer.name}
-                                </Button>
-                                
-                                </Fab>&nbsp;
-                                <br/>
-
-                            </span>
-                        ))
-                    ) : (
-                        <Typography variant="h6">No Customers Available</Typography>
-                    )
-                }
-            </fieldset>
-        </div>
-    );
-};
-
-
-
-const CustomerListComponent = ({ selectedCustomer }) => {
-    const [openEditDialog, setOpenEditDialog] = useState(false);
-    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const [openAddDialog, setOpenAddDialog] = useState(false);
-    const [customerData, setCustomerData] = useState(selectedCustomer || {});
-
-    if (!selectedCustomer) {
-        return (
-            <Typography variant="h6" style={{ margin: "20px", color: "#666" }}>
-                Select a customer to view details
-            </Typography>
-        );
-    }
-
-    const handleEditClick = () => {
-        setCustomerData(selectedCustomer);
-        setOpenEditDialog(true);
-    };
-
-    const handleDeleteClick = () => {
-        setCustomerData(selectedCustomer);
-        setOpenDeleteDialog(true);
-    };
-
-    const handleAddClick = () => {
-        setOpenAddDialog(true);
-    };
+    if (!selectedCustomer) return <Typography>Select Customer</Typography>;
 
     return (
-        <div style={{ position: "relative", padding: "20px" }}>
-            <Fab 
-                color="primary" 
-                style={{ position: "absolute", right: "10px", top: "-40px" }}
-                onClick={handleAddClick}
-            >
+        <div style={{ padding: 20 }}>
+            <Fab color="primary" onClick={() => setOpenAdd(true)}>
                 <Add />
             </Fab>
 
-            <Paper elevation={3} style={{ padding: "20px", marginTop: "20px", background: "#f9f9f9" }}>
-                <Typography variant="h5" style={{ marginBottom: "15px", color: "#d14c13" }}>
-                    Customer Details
+            <Paper style={{ padding: 20, marginTop: 20 }}>
+                <Typography variant="h5" gutterBottom>
+                    {selectedCustomer.name}
                 </Typography>
 
-                <Grid container spacing={2} alignItems="center">
-                    {[
-                        { label: "Code", value: selectedCustomer?.code },
-                        { label: "Name", value: selectedCustomer?.name },
-                        { label: "Address", value: selectedCustomer?.address },
-                        { label: "Contact 1", value: selectedCustomer?.contact1 || "N/A" },
-                        { label: "Contact 2", value: selectedCustomer?.contact2 || "N/A" },
-                        { label: "Contact 3", value: selectedCustomer?.contact3 || "N/A" },
-                        { label: "State Code", value: selectedCustomer?.stateCode },
-                        { label: "Reg Title 1", value: selectedCustomer?.regTitle1 || "N/A" },
-                        { label: "Reg Value 1", value: selectedCustomer?.regValue1 || "N/A" },
-                        { label: "Reg Title 2", value: selectedCustomer?.regTitle2 || "N/A" },
-                        { label: "Reg Value 2", value: selectedCustomer?.regValue2 || "N/A" },
-                        { label: "Reg Title 3", value: selectedCustomer?.regTitle3 || "N/A" },
-                        { label: "Reg Value 3", value: selectedCustomer?.regValue3 || "N/A" },
-                    ].map((item, index) => (
-                        <React.Fragment key={index}>
-                            <Grid item xs={3}>
-                                <Typography variant="subtitle1"><b>{item.label}:</b></Typography>
-                            </Grid>
-                            <Grid item xs={3}>
-                                <Typography>{item.value}</Typography>
-                            </Grid>
-                        </React.Fragment>
-                    ))}
+                <Divider style={{ margin: "10px 0" }} />
+
+                {/*  VERTICAL DETAILS */}
+                <Grid container spacing={2}>
+
+                    <Grid item xs={12}>
+                        <Typography><b>Code:</b> {selectedCustomer.code}</Typography>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Typography><b>Address:</b> {selectedCustomer.address}</Typography>
+                    </Grid>
+
+                    {/* Registration */}
+                    <Grid item xs={6}>
+                        <Typography><b>{selectedCustomer.regTitle1}:</b> {selectedCustomer.regValue1}</Typography>
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <Typography><b>{selectedCustomer.regTitle2}:</b> {selectedCustomer.regValue2}</Typography>
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <Typography><b>{selectedCustomer.regTitle3}:</b> {selectedCustomer.regValue3}</Typography>
+                    </Grid>
+
+                    {/* Contacts */}
+                    <Grid item xs={4}>
+                        <Typography><b>Contact 1:</b> {selectedCustomer.contact1}</Typography>
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <Typography><b>Contact 2:</b> {selectedCustomer.contact2}</Typography>
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <Typography><b>Contact 3:</b> {selectedCustomer.contact3}</Typography>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Typography><b>State Code:</b> {selectedCustomer.stateCode}</Typography>
+                    </Grid>
+
                 </Grid>
 
-                <Grid container spacing={2} style={{ marginTop: "15px", display: "flex", justifyContent: "center" }}>
-                    <Grid item>
-                        <Button variant="contained" color="secondary" startIcon={<Edit />} onClick={handleEditClick}>
-                            Edit
-                        </Button>
-                    </Grid>
-                    <Grid item>
-                        <Button variant="contained" color="default" startIcon={<Delete />} onClick={handleDeleteClick}>
-                            Delete
-                        </Button>
-                    </Grid>
-                </Grid>
+                <Divider style={{ margin: "20px 0" }} />
+
+                {/* ACTION BUTTONS */}
+                <Button
+                    variant="contained"
+                    color="primary"
+                    style={{ marginRight: 10 }}
+                    onClick={() => {
+                        setCustomerData(selectedCustomer);
+                        setOpenEdit(true);
+                    }}
+                >
+                    Edit
+                </Button>
+
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => {
+                        setCustomerData(selectedCustomer);
+                        setOpenDelete(true);
+                    }}
+                >
+                    Delete
+                </Button>
             </Paper>
-            <EditDialogComponent 
-                open={openEditDialog} 
-                handleClose={() => setOpenEditDialog(false)} 
-                customerData={customerData} 
-                setCustomerData={setCustomerData}
+
+            {/* Dialogs */}
+            <AddDialogComponent
+                open={openAdd}
+                handleClose={() => setOpenAdd(false)}
+                onDone={refreshCustomers}
             />
 
-
-
-            <DeleteDialogComponent 
-                open={openDeleteDialog} 
-                handleClose={() => setOpenDeleteDialog(false)} 
-                customerData={customerData} 
+            <EditDialogComponent
+                open={openEdit}
+                handleClose={() => setOpenEdit(false)}
+                customerData={customerData}
+                onDone={refreshCustomers}
             />
 
-            <AddDialogComponent 
-                open={openAddDialog} 
-                handleClose={() => setOpenAddDialog(false)} 
+            <DeleteDialogComponent
+                open={openDelete}
+                handleClose={() => setOpenDelete(false)}
+                customerData={customerData}
+                onDone={refreshCustomers}
             />
         </div>
     );
 };
-
-const DeleteDialogComponent = ({ open, handleClose, customerData }) => {
-    const [loading, setLoading] = useState(false);
-    const [alertOpen, setAlertOpen] = useState(false);
-    const [alertMessage, setAlertMessage] = useState("");
-    const [alertSeverity, setAlertSeverity] = useState("info");
-
-    const handleDelete = async () => {
-        setLoading(true); // Circular Progress Start
-
-        setTimeout(async () => {
-            try {
-                const response = await removeCustomer(customerData?.code);
-                if (response.success) {
-                    setAlertMessage(`${customerData?.name} deleted successfully!`);
-                    setAlertSeverity("success");
-                } else {
-                    setAlertMessage(`Error deleting customer: ${response.error}`);
-                    setAlertSeverity("error");
-                }
-            } catch (error) {
-                setAlertMessage(`Error: ${error.message}`);
-                setAlertSeverity("error");
-            }
-
-            setLoading(false); // Circular Progress Stop
-            setAlertOpen(true); // TMAlert Show
-            handleClose(); // Dialog Close
-        }, 3000); // 3 sec delay
-    };
-
-    return (
-        <>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogContent>
-                    {loading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" minHeight={50}>
-                            <CircularProgress /> 
-                        </Box>
-                    ) : (
-                        <Typography>
-                            Are you sure you want to delete <b>{customerData?.name}</b>?
-                        </Typography>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="default" disabled={loading}>
-                        No
-                    </Button>
-                    <Button onClick={handleDelete} color="secondary" disabled={loading}>
-                        Yes
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            <TMAlert 
-                open={alertOpen} 
-                message={alertMessage} 
-                severity={alertSeverity} 
-                onClose={() => setAlertOpen(false)} 
-            />
-        </>
-    );
-};
-
-const AddDialogComponent = ({ open, handleClose, onCustomerAdded }) => {
-    const [customerData, setCustomerData] = useState({
+// ================= ADD =================
+const AddDialogComponent = ({ open, handleClose, onDone }) => {
+    const [data, setData] = useState({
+        code: "",
         name: "",
         address: "",
-        stateCode: "",
         regTitle1: "",
         regValue1: "",
         regTitle2: "",
@@ -353,165 +306,408 @@ const AddDialogComponent = ({ open, handleClose, onCustomerAdded }) => {
         regValue3: "",
         contact1: "",
         contact2: "",
-        contact3: ""
+        contact3: "",
+        stateCode: ""
     });
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setCustomerData((prevData) => ({
-            ...prevData,
-            [name]: value
-        }));
-    };
+    const [loading, setLoading] = useState(false);
 
     const handleAdd = async () => {
-        try {
-            const response = await addCustomer(customerData);
-            if (response.success) {
-                alert("Customer added successfully!");
-                handleClose();
-                onCustomerAdded(); // Refresh the customer list after adding
-            } else {
-                alert("Error adding customer: " + response.error);
-            }
-        } catch (error) {
-            alert("Error: " + error.message);
+        setLoading(true);
+
+        const res = await addCustomer(data);
+
+        setLoading(false);
+
+        if (res.success) {
+            onDone();
+            handleClose();
+
+            setData({
+                code: "",
+                name: "",
+                address: "",
+                regTitle1: "",
+                regValue1: "",
+                regTitle2: "",
+                regValue2: "",
+                regTitle3: "",
+                regValue3: "",
+                contact1: "",
+                contact2: "",
+                contact3: "",
+                stateCode: ""
+            });
         }
     };
 
     return (
-        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-            <DialogTitle>Add New Customer</DialogTitle>
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+            <DialogTitle>Add Customer</DialogTitle>
+
             <DialogContent>
                 <Grid container spacing={2}>
-                    {[
-                        { label: "Customer Name", name: "name" },
-                        { label: "Address", name: "address" },
-                        { label: "State Code", name: "stateCode" },
-                        { label: "Contact 1", name: "contact1" },
-                        { label: "Contact 2", name: "contact2" },
-                        { label: "Contact 3", name: "contact3" },
-                        { label: "Reg Title 1", name: "regTitle1" },
-                        { label: "Reg Value 1", name: "regValue1" },
-                        { label: "Reg Title 2", name: "regTitle2" },
-                        { label: "Reg Value 2", name: "regValue2" },
-                        { label: "Reg Title 3", name: "regTitle3" },
-                        { label: "Reg Value 3", name: "regValue3" },
-                    ].map((field, index) => (
-                        <Grid item xs={6} key={index}>
-                            <TextField
-                                fullWidth
-                                margin="dense"
-                                label={field.label}
-                                name={field.name}
-                                value={customerData[field.name]}
-                                onChange={handleChange}
-                            />
-                        </Grid>
-                    ))}
+
+                    <Grid item xs={12}>
+                        <TextField label="Code" fullWidth
+                            value={data.code}
+                            onChange={e => setData({ ...data, code: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <TextField label="Name" fullWidth
+                            value={data.name}
+                            onChange={e => setData({ ...data, name: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <TextField label="Address" fullWidth multiline rows={3}
+                            value={data.address}
+                            onChange={e => setData({ ...data, address: e.target.value })}
+                        />
+                    </Grid>
+
+                    {/* Registration Fields */}
+                    <Grid item xs={6}>
+                        <TextField label="Reg Title 1" fullWidth
+                            value={data.regTitle1}
+                            onChange={e => setData({ ...data, regTitle1: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField label="Reg Value 1" fullWidth
+                            value={data.regValue1}
+                            onChange={e => setData({ ...data, regValue1: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField label="Reg Title 2" fullWidth
+                            value={data.regTitle2}
+                            onChange={e => setData({ ...data, regTitle2: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField label="Reg Value 2" fullWidth
+                            value={data.regValue2}
+                            onChange={e => setData({ ...data, regValue2: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField label="Reg Title 3" fullWidth
+                            value={data.regTitle3}
+                            onChange={e => setData({ ...data, regTitle3: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField label="Reg Value 3" fullWidth
+                            value={data.regValue3}
+                            onChange={e => setData({ ...data, regValue3: e.target.value })}
+                        />
+                    </Grid>
+
+                    {/* Contacts */}
+                    <Grid item xs={4}>
+                        <TextField label="Contact 1" fullWidth
+                            value={data.contact1}
+                            onChange={e => setData({ ...data, contact1: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <TextField label="Contact 2" fullWidth
+                            value={data.contact2}
+                            onChange={e => setData({ ...data, contact2: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <TextField label="Contact 3" fullWidth
+                            value={data.contact3}
+                            onChange={e => setData({ ...data, contact3: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <TextField label="State Code" fullWidth
+                            value={data.stateCode}
+                            onChange={e => setData({ ...data, stateCode: e.target.value })}
+                        />
+                    </Grid>
+
                 </Grid>
             </DialogContent>
+
             <DialogActions>
-                <Button onClick={handleClose} color="default">Cancel</Button>
-                <Button onClick={handleAdd} color="primary">Add</Button>
+                <Button onClick={handleClose}>Cancel</Button>
+
+                <Button onClick={handleAdd} color="primary" variant="contained">
+                    {loading ? <CircularProgress size={20} /> : "Add"}
+                </Button>
             </DialogActions>
         </Dialog>
     );
 };
 
+// ================= EDIT =================
+const EditDialogComponent = ({ open, handleClose, customerData, onDone }) => {
+    const [formData, setFormData] = useState({
+        code: "",
+        name: "",
+        address: "",
+        regTitle1: "",
+        regValue1: "",
+        regTitle2: "",
+        regValue2: "",
+        regTitle3: "",
+        regValue3: "",
+        contact1: "",
+        contact2: "",
+        contact3: "",
+        stateCode: ""
+    });
 
-
-const EditDialogComponent = ({ open, handleClose, customerData, setCustomerData }) => {
     const [loading, setLoading] = useState(false);
-    const [alertOpen, setAlertOpen] = useState(false);
-    const [alertMessage, setAlertMessage] = useState("");
-    const [alertSeverity, setAlertSeverity] = useState("info");
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setCustomerData((prevData) => ({
-            ...prevData,
-            [name]: value
-        }));
-    };
+    // Dialog open → data fill
+    useEffect(() => {
+        if (customerData) {
+            setFormData({
+                code: customerData.code || "",
+                name: customerData.name || "",
+                address: customerData.address || "",
+                regTitle1: customerData.regTitle1 || "",
+                regValue1: customerData.regValue1 || "",
+                regTitle2: customerData.regTitle2 || "",
+                regValue2: customerData.regValue2 || "",
+                regTitle3: customerData.regTitle3 || "",
+                regValue3: customerData.regValue3 || "",
+                contact1: customerData.contact1 || "",
+                contact2: customerData.contact2 || "",
+                contact3: customerData.contact3 || "",
+                stateCode: customerData.stateCode || ""
+            });
+        }
+    }, [customerData, open]);
 
     const handleSave = async () => {
         setLoading(true);
-        setTimeout(async () => {
-            try {
-                const response = await updateCustomer(customerData);
-                if (response.success) {
-                    setAlertMessage("Customer updated successfully!");
-                    setAlertSeverity("success");
-                    handleClose();
-                } else {
-                    setAlertMessage("Error updating customer: " + response.error);
-                    setAlertSeverity("error");
-                }
-            } catch (error) {
-                setAlertMessage("Error: " + error.message);
-                setAlertSeverity("error");
+
+        const res = await updateCustomer(formData);
+
+        setLoading(false);
+
+        if (res.success) {
+            onDone();
+            handleClose();
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+            <DialogTitle>Edit Customer</DialogTitle>
+
+            <DialogContent>
+                <Grid container spacing={2}>
+
+                    {/* Name */}
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Customer Name"
+                            fullWidth
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </Grid>
+
+                    {/* Address */}
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Address"
+                            fullWidth
+                            multiline
+                            rows={3}
+                            value={formData.address}
+                            onChange={e => setFormData({ ...formData, address: e.target.value })}
+                        />
+                    </Grid>
+
+                    {/* Registration Fields */}
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Reg Title 1"
+                            fullWidth
+                            value={formData.regTitle1}
+                            onChange={e => setFormData({ ...formData, regTitle1: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Reg Value 1"
+                            fullWidth
+                            value={formData.regValue1}
+                            onChange={e => setFormData({ ...formData, regValue1: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Reg Title 2"
+                            fullWidth
+                            value={formData.regTitle2}
+                            onChange={e => setFormData({ ...formData, regTitle2: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Reg Value 2"
+                            fullWidth
+                            value={formData.regValue2}
+                            onChange={e => setFormData({ ...formData, regValue2: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Reg Title 3"
+                            fullWidth
+                            value={formData.regTitle3}
+                            onChange={e => setFormData({ ...formData, regTitle3: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={6}>
+                        <TextField
+                            label="Reg Value 3"
+                            fullWidth
+                            value={formData.regValue3}
+                            onChange={e => setFormData({ ...formData, regValue3: e.target.value })}
+                        />
+                    </Grid>
+
+                    {/* Contacts */}
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Contact 1"
+                            fullWidth
+                            value={formData.contact1}
+                            onChange={e => setFormData({ ...formData, contact1: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Contact 2"
+                            fullWidth
+                            value={formData.contact2}
+                            onChange={e => setFormData({ ...formData, contact2: e.target.value })}
+                        />
+                    </Grid>
+
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Contact 3"
+                            fullWidth
+                            value={formData.contact3}
+                            onChange={e => setFormData({ ...formData, contact3: e.target.value })}
+                        />
+                    </Grid>
+
+                    {/* State Code */}
+                    <Grid item xs={12}>
+                        <TextField
+                            label="State Code"
+                            fullWidth
+                            value={formData.stateCode}
+                            onChange={e => setFormData({ ...formData, stateCode: e.target.value })}
+                        />
+                    </Grid>
+
+                </Grid>
+            </DialogContent>
+
+            <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+
+                <Button
+                    color="primary"
+                    variant="contained"
+                    onClick={handleSave}
+                    disabled={loading}
+                >
+                    {loading ? <CircularProgress size={20} /> : "Update"}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};// ================= DELETE =================
+const DeleteDialogComponent = ({ open, handleClose, customerData, onDone }) => {
+    const [loading, setLoading] = useState(false);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [message, setMessage] = useState("");
+    const [severity, setSeverity] = useState("info");
+
+    const handleDelete = async () => {
+        setLoading(true);
+
+        try {
+            const res = await removeCustomer(customerData.code);
+
+            if (res.success) {
+                setMessage("Deleted successfully");
+                setSeverity("success");
+                onDone();
+            } else {
+                setMessage(res.detail || "Delete failed");
+                setSeverity("error");
             }
-            setLoading(false);
-            setAlertOpen(true);
-        }, 3000);
+
+        } catch (err) {
+            setMessage(err.message);
+            setSeverity("error");
+        }
+
+        setLoading(false);
+        setAlertOpen(true);
+        handleClose();
     };
 
     return (
         <>
-            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-                <DialogTitle>Edit Customer Details</DialogTitle>
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle style={{ color: "red" }}>Confirm Delete</DialogTitle>
+
                 <DialogContent>
-                    {loading ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" minHeight={50}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <Grid container spacing={2}>
-                            {[{ label: "Customer Code", name: "code" },
-                                { label: "Customer Name", name: "name" },
-                                { label: "Address", name: "address" },
-                                { label: "Contact 1", name: "contact1" },
-                                { label: "Contact 2", name: "contact2" },
-                                { label: "Contact 3", name: "contact3" },
-                                { label: "State Code", name: "stateCode" },
-                                { label: "Reg Title 1", name: "regTitle1" },
-                                { label: "Reg Value 1", name: "regValue1" },
-                                { label: "Reg Title 2", name: "regTitle2" },
-                                { label: "Reg Value 2", name: "regValue2" },
-                                { label: "Reg Title 3", name: "regTitle3" },
-                                { label: "Reg Value 3", name: "regValue3" }
-                            ].map((field, index) => (
-                                <Grid item xs={6} key={index}>
-                                    <TextField 
-                                        fullWidth 
-                                        margin="dense" 
-                                        label={field.label} 
-                                        name={field.name} 
-                                        value={customerData[field.name] || ""} 
-                                        onChange={handleChange}
-                                        disabled={loading}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    )}
+                    <Typography>
+                        Delete <b>{customerData?.name}</b> ?
+                    </Typography>
                 </DialogContent>
+
                 <DialogActions>
-                    <Button onClick={handleClose} color="default" disabled={loading}>Cancel</Button>
-                    <Button onClick={handleSave} color="primary" disabled={loading}>Save</Button>
+                    <Button onClick={handleClose}>Cancel</Button>
+
+                    <Button onClick={handleDelete} disabled={loading}>
+                        {loading ? <CircularProgress size={20}/> : "Delete"}
+                    </Button>
                 </DialogActions>
             </Dialog>
 
-            <TMAlert 
-                open={alertOpen} 
-                message={alertMessage} 
-                severity={alertSeverity} 
-                onClose={() => setAlertOpen(false)} 
+            <TMAlert
+                open={alertOpen}
+                message={message}
+                severity={severity}
+                onClose={() => setAlertOpen(false)}
             />
         </>
     );
 };
 
 export default Appsaccordian;
-

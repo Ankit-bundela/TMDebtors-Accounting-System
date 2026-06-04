@@ -1,13 +1,14 @@
-from fastapi import APIRouter, HTTPException,status
+from fastapi import APIRouter, HTTPException,status,Depends
+from utils.auth import get_current_user
 from datalayer.managers import *
-from datalayer.managers import ItemManager
+
 from datalayer.exceptions import DataLayerException
 from models import *
 import time
 
 router = APIRouter()
 @router.get("/getItems",status_code=status.HTTP_200_OK)
-def getItems():
+def getItems(user=Depends(get_current_user)):
     try:
         data= []
         manager = ItemManager()
@@ -47,7 +48,7 @@ def getItems():
 
 
 @router.get("/getItemsDetails",status_code=status.HTTP_200_OK)
-def getItemsDetails():
+def getItemsDetails(user=Depends(get_current_user)):
     try:
         #timePass(3000)
         time.sleep(3)
@@ -78,7 +79,7 @@ def getItemsDetails():
         return {"success": False,"error": str(e)}
 
 @router.post('/addItem', status_code=status.HTTP_201_CREATED)
-def postaddItem(item_data: ItemModel):
+def postaddItem(item_data: ItemModel,user=Depends(get_current_user)):
     try:
         manager = ItemManager()
         manager.add(item_data)
@@ -93,7 +94,7 @@ def postaddItem(item_data: ItemModel):
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/updateItem")
-def postUpdateItem(item_data: ItemModel):
+def postUpdateItem(item_data: ItemModel,user=Depends(get_current_user)):
     try:
         print("Received Data:", item_data)
         uoms=[]
@@ -131,7 +132,7 @@ def postUpdateItem(item_data: ItemModel):
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/deleteItem", status_code=status.HTTP_200_OK)
-def deleteItem(request: DeleteItemModel):
+def deleteItem(request: DeleteItemModel,user=Depends(get_current_user)):
     try:
         code = request.code
         manager = ItemManager()

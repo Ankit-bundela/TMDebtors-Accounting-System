@@ -15,9 +15,7 @@ import {
   Snackbar,
 } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
-import PersonIcon from "@material-ui/icons/Person";
-import LocationOnIcon from "@material-ui/icons/LocationOn";
-import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
+import { apiRequest } from "../controler/api";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -31,26 +29,39 @@ const InvoiceForm = () => {
   const [invoiceDate, setInvoiceDate] = useState("");
   const [invoiceItems, setInvoiceItems] = useState([]);
   const [isInterstate, setIsInterstate] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
-    fetch("/getCustomers")
-      .then((res) => res.json())
-      .then((data) => setCustomers(data.data || []));
+    const loadData = async () => {
+      try {
+        const res1 = await apiRequest("/getCustomers");
+        const data1 = await res1.json();
+        setCustomers(data1.data || []);
 
-    fetch("/getItems")
-      .then((res) => res.json())
-      .then((data) => setItems(data.data || []));
+        const res2 = await apiRequest("/getItems");
+        const data2 = await res2.json();
+        setItems(data2.data || []);
 
-    fetch("/getTrader")
-      .then((res) => res.json())
-      .then((data) => setTrader(data.data));
+        const res3 = await apiRequest("/getTrader");
+        const data3 = await res3.json();
+        setTrader(data3.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const handleCustomerChange = (event) => {
-    const code = parseInt(event.target.value);
+  const handleCustomerChange = (e) => {
+    const code = parseInt(e.target.value);
     const customer = customers.find((c) => c.code === code);
     setSelectedCustomer(customer);
+
     if (customer && trader) {
       setIsInterstate(customer.stateCode !== trader.stateCode);
     }
@@ -64,226 +75,277 @@ const InvoiceForm = () => {
   };
 
   const handleItemChange = (index, field, value) => {
-    const updatedItems = [...invoiceItems];
-    updatedItems[index][field] = value;
+    const updated = [...invoiceItems];
+    updated[index][field] = value;
 
     if (field === "itemCode") {
       const selected = items.find((i) => i.code === parseInt(value));
       if (selected) {
-        updatedItems[index].rate = selected.rate || 0;
-        updatedItems[index].sgst = selected.sgst || 0;
-        updatedItems[index].cgst = selected.cgst || 0;
-        updatedItems[index].igst = selected.igst || 0;
+        updated[index].rate = selected.rate || 0;
+        updated[index].sgst = selected.sgst || 0;
+        updated[index].cgst = selected.cgst || 0;
+        updated[index].igst = selected.igst || 0;
       }
     }
 
-    setInvoiceItems(updatedItems);
+    setInvoiceItems(updated);
   };
 
   const calculateRow = (item) => {
     const taxable = item.quantity * item.rate;
-    const tax = isInterstate
-      ? taxable * (item.igst / 100)
-      : taxable * ((item.cgst + item.sgst) / 100);
-    const total = taxable + tax;
-    return { taxable, total };
+
+    const sgst = isInterstate ? 0 : (taxable * item.sgst) / 100;
+    const cgst = isInterstate ? 0 : (taxable * item.cgst) / 100;
+    const igst = isInterstate ? (taxable * item.igst) / 100 : 0;
+
+    const total = taxable + sgst + cgst + igst;
+
+    return { taxable, sgst, cgst, igst, total };
   };
 
   const totalSummary = () => {
-    let subtotal = 0;
-    let totalTax = 0;
+    let subtotal = 0,
+      sgstTotal = 0,
+      cgstTotal = 0,
+      igstTotal = 0;
+
     invoiceItems.forEach((item) => {
-      const { taxable, total } = calculateRow(item);
-      subtotal += taxable;
-      totalTax += total - taxable;
+      const row = calculateRow(item);
+      subtotal += row.taxable;
+      sgstTotal += row.sgst;
+      cgstTotal += row.cgst;
+      igstTotal += row.igst;
     });
-    return { subtotal, totalTax, grandTotal: subtotal + totalTax };
+
+    const totalTax = sgstTotal + cgstTotal + igstTotal;
+
+    return {
+      subtotal,
+      sgstTotal,
+      cgstTotal,
+      igstTotal,
+      totalTax,
+      grandTotal: subtotal + totalTax,
+    };
   };
 
   const handleSubmit = async () => {
     if (!selectedCustomer || !invoiceDate || invoiceItems.length === 0) {
-      return setSnackbar({ open: true, message: "Please fill all required fields.", severity: "error" });
+      return setSnackbar({
+        open: true,
+        message: "Fill all fields",
+        severity: "error",
+      });
     }
 
-    const payload = {
-      customerCode: selectedCustomer.code,
-      invoiceDate,
-      items: invoiceItems.map((i) => {
-        const { taxable, total } = calculateRow(i);
-        return {
-          itemCode: i.itemCode,
-          quantity: i.quantity,
-          rate: i.rate,
-          sgst: isInterstate ? 0 : i.sgst,
-          cgst: isInterstate ? 0 : i.cgst,
-          igst: isInterstate ? i.igst : 0,
-          taxableAmount: taxable,
-          totalAmount: total,
-        };
-      }),
-    };
+    try {
+      const res = await apiRequest("/addInvoice", {
+        method: "POST",
+        body: JSON.stringify({
+          customerCode: selectedCustomer.code,
+          invoiceDate,
+        }),
+      });
 
-    const res = await fetch("/addInvoice", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const data = await res.json();
+      const invoiceCode = data.invoiceCode;
 
-    const data = await res.json();
-    if (data.success) {
-      setSnackbar({ open: true, message: "Invoice created successfully!", severity: "success" });
-    } else {
-      setSnackbar({ open: true, message: "Error creating invoice.", severity: "error" });
+      for (let i of invoiceItems) {
+        await apiRequest("/addInvoiceItem", {
+          method: "POST",
+          body: JSON.stringify({
+            invoiceCode,
+            itemCode: i.itemCode,
+            quantity: i.quantity,
+            rate: i.rate,
+            sgst: isInterstate ? 0 : i.sgst,
+            cgst: isInterstate ? 0 : i.cgst,
+            igst: isInterstate ? i.igst : 0,
+          }),
+        });
+      }
+
+      setSnackbar({
+        open: true,
+        message: "Invoice Created",
+        severity: "success",
+      });
+
+      setInvoiceItems([]);
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Error",
+        severity: "error",
+      });
     }
   };
 
+  const summary = totalSummary();
   return (
-    <Box className="p-6 bg-gray-50 min-h-screen font-['Roboto']">
-      <Typography variant="h4" className="text-indigo-700 font-bold mb-6">
-        Create Invoice
+  <Box p={4} bgcolor="#f5f6fa" minHeight="100vh">
+    <Paper elevation={4} style={{ padding: 24, borderRadius: 12 }}>
+      
+      <Typography variant="h4" gutterBottom>
+        🧾 Create Invoice
       </Typography>
 
-      <Box className="flex flex-wrap gap-4 mb-4">
+      {/* Customer + Date */}
+      <Box display="flex" gap={3} mb={3}>
         <TextField
+          fullWidth
           select
-          label="Customer"
+          label="Select Customer"
+          variant="outlined"
           value={selectedCustomer ? selectedCustomer.code : ""}
           onChange={handleCustomerChange}
-          className="min-w-[240px]"
         >
           {customers.map((c) => (
             <MenuItem key={c.code} value={c.code}>
-              <PersonIcon className="mr-2 text-gray-600" /> {c.name}
+              {c.name}
             </MenuItem>
           ))}
         </TextField>
 
         <TextField
-          label="Invoice Date"
           type="date"
+          label="Invoice Date"
+          variant="outlined"
           InputLabelProps={{ shrink: true }}
           value={invoiceDate}
           onChange={(e) => setInvoiceDate(e.target.value)}
         />
       </Box>
 
-      {selectedCustomer && (
-        <Paper variant="outlined" className="p-4 bg-white mb-4">
-          <Typography variant="subtitle2" className="text-gray-600">
-            {isInterstate ? "Interstate" : "Intrastate"} Supply
-          </Typography>
-          <Typography variant="body2" className="text-sm flex items-center">
-            <LocationOnIcon fontSize="small" className="mr-1" />
-            Customer State: {selectedCustomer.stateName} ({selectedCustomer.stateCode})
-          </Typography>
-        </Paper>
-      )}
+      {/* Add Item Button */}
+      <Box mb={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={addItem}
+        >
+          + Add Item
+        </Button>
+      </Box>
 
-      {trader && (
-        <Paper variant="outlined" className="p-4 bg-white mb-4">
-          <Typography variant="subtitle2" className="text-gray-600 flex items-center mb-1">
-            <AccountBalanceIcon className="mr-2 "  fontSize="medium" color="primary" /> Bank Details
-          </Typography>
-          <Typography variant="bod2y">Bank: {trader.bankName || "-"}</Typography>
-          <Typography variant="body2">Account No: {trader.accountNo || "-"}</Typography>
-          <Typography variant="body2">Branch: {trader.branchName || "-"}</Typography>
-          <Typography variant="body2">IFSC: {trader.ifscCode || "-"}</Typography>
-        </Paper>
-      )}
-
-      <Typography variant="h6" className="mb-2 text-gray-800">
-        Items
-      </Typography>
-
-      <Table size="small" className="mb-3 bg-white shadow-sm">
-        <TableHead className="bg-gray-100">
-          <TableRow>
-            {["Item", "Qty", "Rate", "SGST%", "CGST%", "IGST%", "Taxable", "Total"].map((head) => (
-              <TableCell key={head} className="font-semibold text-sm text-gray-700">
-                {head}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {invoiceItems.map((item, index) => {
-            const { taxable, total } = calculateRow(item);
-            return (
-              <TableRow key={index}>
-                <TableCell>
-                  <TextField
-                    select
-                    value={item.itemCode}
-                    onChange={(e) => handleItemChange(index, "itemCode", e.target.value)}
-                    className="min-w-[140px]"
-                  >
-                    {items.map((i) => (
-                      <MenuItem key={i.code} value={i.code}>
-                        {i.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+      {/* Table */}
+      <Paper elevation={2} style={{ borderRadius: 10 }}>
+        <Table>
+          <TableHead style={{ background: "#1976d2" }}>
+            <TableRow>
+              {["Item", "Qty", "Rate", "Taxable", "SGST", "CGST", "IGST", "Total"].map((h) => (
+                <TableCell key={h} style={{ color: "#fff", fontWeight: "bold" }}>
+                  {h}
                 </TableCell>
-                <TableCell>
-                  <TextField
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => handleItemChange(index, "quantity", parseFloat(e.target.value))}
-                    className="w-[60px]"
-                  />
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    type="number"
-                    value={item.rate}
-                    onChange={(e) => handleItemChange(index, "rate", parseFloat(e.target.value))}
-                    className="w-[80px]"
-                  />
-                </TableCell>
-                <TableCell>{isInterstate ? "0" : item.sgst}</TableCell>
-                <TableCell>{isInterstate ? "0" : item.cgst}</TableCell>
-                <TableCell>{isInterstate ? item.igst : "0"}</TableCell>
-                <TableCell>{taxable.toFixed(2)}</TableCell>
-                <TableCell>{total.toFixed(2)}</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+              ))}
+            </TableRow>
+          </TableHead>
 
-      <Button variant="outlined" onClick={addItem} className="mt-1">
-        + Add Item
-      </Button>
+          <TableBody>
+            {invoiceItems.map((item, i) => {
+              const row = calculateRow(item);
 
-      <Divider className="my-4" />
+              return (
+                <TableRow key={i}>
+                  <TableCell>
+                    <TextField
+                      select
+                      size="small"
+                      value={item.itemCode}
+                      onChange={(e) =>
+                        handleItemChange(i, "itemCode", e.target.value)
+                      }
+                    >
+                      {items.map((it) => (
+                        <MenuItem key={it.code} value={it.code}>
+                          {it.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </TableCell>
 
-      <Box className="space-y-1">
-        <Typography>Subtotal: ₹{totalSummary().subtotal.toFixed(2)}</Typography>
-        <Typography>Tax: ₹{totalSummary().totalTax.toFixed(2)}</Typography>
-        <Typography variant="h6" className="font-semibold text-green-700">
-          Grand Total: ₹{totalSummary().grandTotal.toFixed(2)}
+                  <TableCell>
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleItemChange(i, "quantity", +e.target.value)
+                      }
+                    />
+                  </TableCell>
+
+                  <TableCell>
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={item.rate}
+                      onChange={(e) =>
+                        handleItemChange(i, "rate", +e.target.value)
+                      }
+                    />
+                  </TableCell>
+
+                  <TableCell>{row.taxable.toFixed(2)}</TableCell>
+                  <TableCell>{row.sgst.toFixed(2)}</TableCell>
+                  <TableCell>{row.cgst.toFixed(2)}</TableCell>
+                  <TableCell>{row.igst.toFixed(2)}</TableCell>
+
+                  <TableCell style={{ fontWeight: "bold" }}>
+                    ₹{row.total.toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Paper>
+
+      {/* Summary */}
+      <Box
+        mt={3}
+        p={2}
+        bgcolor="#e3f2fd"
+        borderRadius={10}
+      >
+        <Typography>Subtotal: ₹{summary.subtotal.toFixed(2)}</Typography>
+        <Typography>SGST: ₹{summary.sgstTotal.toFixed(2)}</Typography>
+        <Typography>CGST: ₹{summary.cgstTotal.toFixed(2)}</Typography>
+        <Typography>IGST: ₹{summary.igstTotal.toFixed(2)}</Typography>
+        <Typography>Total Tax: ₹{summary.totalTax.toFixed(2)}</Typography>
+
+        <Typography variant="h6" style={{ marginTop: 10 }}>
+          Grand Total: ₹{summary.grandTotal.toFixed(2)}
         </Typography>
       </Box>
 
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        className="mt-6"
-      >
-        Create Invoice
-      </Button>
+      {/* Submit */}
+      <Box mt={3}>
+        <Button
+          fullWidth
+          size="large"
+          variant="contained"
+          style={{ background: "#2e7d32", color: "#fff" }}
+          onClick={handleSubmit}
+        >
+          🚀 Create Invoice
+        </Button>
+      </Box>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
-      </Snackbar>
-    </Box>
-  );
-};
+    </Paper>
+
+    {/* Snackbar */}
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={4000}
+      onClose={() => setSnackbar({ ...snackbar, open: false })}
+    >
+      <Alert severity={snackbar.severity}>
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+  </Box>
+);
+  };
 
 export default InvoiceForm;

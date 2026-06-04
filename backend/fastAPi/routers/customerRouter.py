@@ -1,26 +1,23 @@
-from fastapi import HTTPException,APIRouter,status,Request
-from models import CustomerModel
 from datalayer.entities import Traders
 from datalayer.managers import CustomerManager
 from datalayer.exceptions import DataLayerException
+from utils.auth import get_current_user
+
+from fastapi import HTTPException,APIRouter,status,Request,Form,Depends
+from models import CustomerModel
 from models import DeleteCustomerModel
-from fastapi import Form
+
 
 router=APIRouter()
 
 @router.get("/getCustomers", status_code=status.HTTP_200_OK)
-def getCustomers():
+def getCustomers(user=Depends(get_current_user)):
     try:
         manager = CustomerManager()
         customers = manager.getAll()
         return {"success": True, "data": customers}
-
     except DataLayerException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -29,6 +26,7 @@ def getCustomers():
 
 @router.post('/addCustomer', status_code=201)
 def postAddCustomer(
+    user=Depends(get_current_user),
     name: str = Form(...),
     address: str = Form(...),
     stateCode: int = Form(1),
@@ -44,8 +42,6 @@ def postAddCustomer(
 ):
     try:
         manager = CustomerManager()
-
-        # ✅ Convert Form data to CustomerModel
         customer_obj = CustomerModel(
             name=name,
             address=address,
@@ -77,6 +73,7 @@ def postAddCustomer(
 
 @router.post("/updateCustomer", status_code=200)
 def postUpdateCustomer(
+    user=Depends(get_current_user),
     code: int = Form(...),
     name: str = Form(None),
     address: str = Form(None),
@@ -137,7 +134,7 @@ def postUpdateCustomer(
     
 
 @router.post("/removeCustomer", status_code=200)    
-def postRemoveCustomer(code: int = Form(...)):
+def postRemoveCustomer(user=Depends(get_current_user),code: int = Form(...)):
 
     manager = CustomerManager()
 

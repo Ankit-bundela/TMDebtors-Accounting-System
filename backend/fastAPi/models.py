@@ -17,17 +17,10 @@ class ItemModel(BaseModel):
 class DeleteItemModel(BaseModel):
     code: int
 
-
-
 class State(BaseModel):
     code: int
     name: str
     alphaCode: str
-
-
-
-
-
 
 class TraderModel(BaseModel):
     code: int
@@ -112,6 +105,15 @@ class UserResponse(BaseModel):
     createdAt: datetime
 
 
+
+
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    role: str
+
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+/*import React, { useEffect, useState } from "react";
 import TMAlert from "./TMAlert";
 import { Person, Email, VerifiedUser, CalendarToday, Money } from "@material-ui/icons";
 
@@ -104,7 +104,7 @@ const Home = () => {
         loadingSkeleton
       ) : (
         <>
-          {/* Dashboard Cards */}
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <StatCard
               title="Total Customers"
@@ -132,7 +132,7 @@ const Home = () => {
             />
           </div>
 
-          {/* Users Table */}
+          
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">Registered Users</h2>
           <div className="overflow-x-auto bg-white rounded-2xl shadow p-4">
             <table className="min-w-full text-gray-700 table-auto border-collapse">
@@ -190,6 +190,181 @@ const StatCard = ({ title, value, icon, bgGradient }) => (
       {icon} <span className="text-sm text-gray-600">{title}</span>
     </div>
     <div className="text-3xl font-bold text-gray-800">{value}</div>
+  </div>
+);
+
+export default Home;
+*/
+import React, { useEffect, useState } from "react";
+import TMAlert from "./TMAlert";
+import {
+  Person,
+  Email,
+  VerifiedUser,
+  CalendarToday,
+  Money,
+} from "@material-ui/icons";
+
+// ================= BASE FETCH WRAPPER (IMPORTANT FIX) =================
+const apiFetch = async (url) => {
+  const token = localStorage.getItem("token"); // 👈 JWT TOKEN
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP Error ${res.status}`);
+  }
+
+  return res.json();
+};
+
+const Home = () => {
+  const [customers, setCustomers] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [alert, setAlert] = useState({ open: false, message: "" });
+
+  const showError = (msg) => setAlert({ open: true, message: msg });
+
+  // ================= API CALLS (FIXED) =================
+  const getCustomers = async () => {
+    try {
+      const data = await apiFetch("/getCustomers");
+      return data?.success ? data.data || [] : [];
+    } catch {
+      showError("Failed to fetch customers (401/Unauthorized)");
+      return [];
+    }
+  };
+
+  const getAllInvoices = async () => {
+    try {
+      const data = await apiFetch("/getAllInvoices");
+      return data?.success ? data.data || [] : [];
+    } catch {
+      showError("Failed to fetch invoices (401/Unauthorized)");
+      return [];
+    }
+  };
+
+  const getAllUsers = async () => {
+    try {
+      const data = await apiFetch("/getAllUsers");
+      return data?.success ? data.data || [] : [];
+    } catch {
+      showError("Failed to fetch users (401/Unauthorized)");
+      return [];
+    }
+  };
+
+  // ================= LOAD =================
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+
+      const [cust, inv, usersList] = await Promise.all([
+        getCustomers(),
+        getAllInvoices(),
+        getAllUsers(),
+      ]);
+
+      setCustomers(cust);
+      setInvoices(inv);
+      setUsers(usersList);
+
+      setLoading(false);
+    };
+
+    load();
+  }, []);
+
+  const getLastInvoiceDate = () => {
+    if (!invoices.length) return "N/A";
+
+    const dates = invoices
+      .map((i) => new Date(i.date || i.invoiceDate))
+      .filter((d) => !isNaN(d));
+
+    if (!dates.length) return "N/A";
+
+    return new Date(Math.max(...dates)).toLocaleDateString();
+  };
+
+  const getPendingDues = () => {
+    return invoices.reduce((sum, inv) => {
+      return sum + ((inv.totalAmount || 0) - (inv.paidAmount || 0));
+    }, 0);
+  };
+
+  return (
+    <div className="p-6 min-h-screen bg-gradient-to-br from-[#f8fbff] to-[#edf4fc]">
+      <h1 className="text-4xl font-bold mb-8">📊 Dashboard</h1>
+
+      {alert.open && (
+        <TMAlert
+          message={alert.message}
+          onClose={() => setAlert({ open: false, message: "" })}
+        />
+      )}
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          {/* CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <StatCard title="Customers" value={customers.length} icon={<Person />} />
+            <StatCard title="Invoices" value={invoices.length} icon={<VerifiedUser />} />
+            <StatCard title="Last Invoice" value={getLastInvoiceDate()} icon={<CalendarToday />} />
+            <StatCard title="Pending ₹" value={getPendingDues()} icon={<Money />} />
+          </div>
+
+          {/* USERS */}
+          <h2 className="text-xl font-semibold mb-3">Users</h2>
+
+          <table className="w-full bg-white shadow rounded">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {users.map((u, i) => (
+                <tr key={i}>
+                  <td>{i + 1}</td>
+                  <td>{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>{u.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ================= CARD =================
+const StatCard = ({ title, value, icon }) => (
+  <div className="p-4 bg-white shadow rounded-xl">
+    <div className="flex items-center gap-2 mb-2">
+      {icon}
+      <span>{title}</span>
+    </div>
+    <div className="text-2xl font-bold">{value}</div>
   </div>
 );
 

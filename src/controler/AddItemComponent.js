@@ -112,28 +112,34 @@ const AddItemComponent = ({ closeDialog }) => {
     setLoading(true);
 
     try {
+      const payload = {
+        code: Date.now(), // Unique code
+        name,
+        cgst: parseFloat(cgst) || 0,
+        sgst: parseFloat(sgst) || 0,
+        igst: parseFloat(igst) || 0,
+        hsnCode: hsnCode.trim(),
+        unitofMeasurments: selectedUnits.map(uom => ({
+          code: uom.code,
+          name: uom.name
+        }))
+      };
+
       const response = await fetch("/addItem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          cgst: parseFloat(cgst) || 0,
-          sgst: parseFloat(sgst) || 0,
-          igst: parseFloat(igst) || 0,
-          hsnCode: hsnCode.trim(),
-          unitofMeasurments: selectedUnits.map(uom => ({
-            code: uom.code,
-            name: uom.name
-          }))
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
       setLoading(false);
+
       if (data.success) {
-        setSnackbarMessage("✅ Item added successfully!");
+        setSnackbarMessage(" Item added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
+
+        // reset form
         setName("");
         setCgst("");
         setSgst("");
@@ -148,7 +154,7 @@ const AddItemComponent = ({ closeDialog }) => {
       }
     } catch (error) {
       setLoading(false);
-      setSnackbarMessage("⚠️ Error adding item!");
+      setSnackbarMessage(" Error adding item!");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
@@ -271,8 +277,9 @@ const AddItemComponent = ({ closeDialog }) => {
     </Paper>
   );
 };
-export default AddItemComponent;
-*/
+
+export default AddItemComponent;*/
+import { apiRequest } from "../controler/api";
 import React, { useState, useEffect } from "react";
 import {
   Button,
@@ -301,9 +308,11 @@ const AddItemComponent = ({ closeDialog }) => {
 
   const [itemNameInvalid, setItemNameInvalid] = useState(false);
   const [itemNameHelperText, setItemNameHelperText] = useState("");
+
   const [cgstInvalid, setCgstInvalid] = useState(false);
   const [sgstInvalid, setSgstInvalid] = useState(false);
   const [igstInvalid, setIgstInvalid] = useState(false);
+
   const [cgstHelperText, setCgstHelperText] = useState("");
   const [sgstHelperText, setSgstHelperText] = useState("");
   const [igstHelperText, setIgstHelperText] = useState("");
@@ -313,33 +322,35 @@ const AddItemComponent = ({ closeDialog }) => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
   const [loading, setLoading] = useState(false);
 
+  /* ---------------- LOAD UOM ---------------- */
   useEffect(() => {
-    fetch("/getAllUOMs")
-      .then(res => res.json())
-      .then(data => {
+    const loadUOMs = async () => {
+      try {
+        const res = await apiRequest("/getAllUOMs");
+        const data = await res.json();
+
         if (data.success && Array.isArray(data.data)) {
           setAllUnits(data.data);
         } else {
-          console.error("Invalid UOM data", data);
           setAllUnits([]);
         }
-      })
-      .catch(err => {
-        console.error("Error fetching UOMs", err);
+      } catch (err) {
+        console.error("UOM error:", err);
         setAllUnits([]);
-      });
+      }
+    };
+
+    loadUOMs();
   }, []);
 
-  const closeSnackbar = () => {
-    setSnackbarOpen(false);
-    setSnackbarMessage("");
-  };
+  /* ---------------- VALIDATION ---------------- */
 
   const itemNameChanged = (ev) => {
     const val = ev.target.value;
     setName(val);
 
     const isValid = /^[A-Za-z ]+$/.test(val);
+
     if (val.trim() === "") {
       setItemNameHelperText("");
       setItemNameInvalid(false);
@@ -369,6 +380,8 @@ const AddItemComponent = ({ closeDialog }) => {
     setFunc(val);
   };
 
+  /* ---------------- ADD ITEM ---------------- */
+
   const addItem = async () => {
     if (!name.trim()) {
       setSnackbarMessage("Item name is required!");
@@ -376,8 +389,9 @@ const AddItemComponent = ({ closeDialog }) => {
       setSnackbarOpen(true);
       return;
     }
+
     if (selectedUnits.length === 0) {
-      setSnackbarMessage("Please select at least one Unit of Measurement!");
+      setSnackbarMessage("Select at least one unit!");
       setSnackbarSeverity("warning");
       setSnackbarOpen(true);
       return;
@@ -387,64 +401,61 @@ const AddItemComponent = ({ closeDialog }) => {
 
     try {
       const payload = {
-        code: Date.now(), // Unique code
+        code: Date.now(),
         name,
         cgst: parseFloat(cgst) || 0,
         sgst: parseFloat(sgst) || 0,
         igst: parseFloat(igst) || 0,
         hsnCode: hsnCode.trim(),
-        unitofMeasurments: selectedUnits.map(uom => ({
-          code: uom.code,
-          name: uom.name
+        unitofMeasurments: selectedUnits.map(u => ({
+          code: u.code,
+          name: u.name
         }))
       };
 
-      const response = await fetch("/addItem", {
+      const res = await apiRequest("/addItem", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
+      const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        setSnackbarMessage("✅ Item added successfully!");
+        setSnackbarMessage("Item added successfully!");
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
 
-        // reset form
         setName("");
         setCgst("");
         setSgst("");
         setIgst("");
         setHsnCode("");
         setSelectedUnits([]);
+
         setTimeout(() => closeDialog(), 1000);
       } else {
-        setSnackbarMessage(data.error || "Failed to add item.");
+        setSnackbarMessage(data.error || "Failed to add item");
         setSnackbarSeverity("error");
         setSnackbarOpen(true);
       }
-    } catch (error) {
+    } catch (err) {
       setLoading(false);
-      setSnackbarMessage("⚠️ Error adding item!");
+      setSnackbarMessage("Server error!");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
   };
 
+  /* ---------------- UI (UNCHANGED) ---------------- */
+
   return (
-    <Paper elevation={4} style={{ padding: "32px", borderRadius: "16px", maxWidth: 550, margin: "auto" }}>
+    <Paper style={{ padding: 32, borderRadius: 16, maxWidth: 550, margin: "auto" }}>
       {loading && <LinearProgress />}
 
-      <Box mb={2} textAlign="center">
-        <Typography variant="h5" style={{ fontWeight: 600 }}>
-          Add Item Details
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Fill all necessary fields to register a new item.
-        </Typography>
+      <Box textAlign="center" mb={2}>
+        <Typography variant="h5">Add Item Details</Typography>
       </Box>
 
       <TextField
@@ -462,40 +473,36 @@ const AddItemComponent = ({ closeDialog }) => {
         <Grid item xs={4}>
           <TextField
             label="CGST (%)"
-            type="number"
             value={cgst}
-            onChange={(e) => validateTax(e.target.value, setCgst, setCgstInvalid, setCgstHelperText)}
-            helperText={cgstHelperText}
-            error={cgstInvalid}
+            onChange={(e) =>
+              validateTax(e.target.value, setCgst, setCgstInvalid, setCgstHelperText)
+            }
             variant="outlined"
             fullWidth
-            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
           />
         </Grid>
+
         <Grid item xs={4}>
           <TextField
             label="SGST (%)"
-            type="number"
             value={sgst}
-            onChange={(e) => validateTax(e.target.value, setSgst, setSgstInvalid, setSgstHelperText)}
-            helperText={sgstHelperText}
-            error={sgstInvalid}
+            onChange={(e) =>
+              validateTax(e.target.value, setSgst, setSgstInvalid, setSgstHelperText)
+            }
             variant="outlined"
             fullWidth
-            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
           />
         </Grid>
+
         <Grid item xs={4}>
           <TextField
             label="IGST (%)"
-            type="number"
             value={igst}
-            onChange={(e) => validateTax(e.target.value, setIgst, setIgstInvalid, setIgstHelperText)}
-            helperText={igstHelperText}
-            error={igstInvalid}
+            onChange={(e) =>
+              validateTax(e.target.value, setIgst, setIgstInvalid, setIgstHelperText)
+            }
             variant="outlined"
             fullWidth
-            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
           />
         </Grid>
       </Grid>
@@ -514,26 +521,18 @@ const AddItemComponent = ({ closeDialog }) => {
         options={allUnits}
         getOptionLabel={(option) => option.name}
         value={selectedUnits}
-        onChange={(e, newVal) => setSelectedUnits(newVal)}
+        onChange={(e, val) => setSelectedUnits(val)}
         renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Units of Measurement"
-            placeholder="Select Units"
-            variant="outlined"
-            margin="normal"
-          />
+          <TextField {...params} label="Units" variant="outlined" margin="normal" />
         )}
       />
 
       <Divider style={{ margin: "24px 0" }} />
 
       <Button
+        fullWidth
         variant="contained"
         color="primary"
-        fullWidth
-        size="large"
-        style={{ borderRadius: 8, padding: "10px 0", fontWeight: 600 }}
         startIcon={<AddIcon />}
         onClick={addItem}
         disabled={loading}
@@ -545,8 +544,7 @@ const AddItemComponent = ({ closeDialog }) => {
         open={snackbarOpen}
         message={snackbarMessage}
         severity={snackbarSeverity}
-        onClose={closeSnackbar}
-        duration={5000}
+        onClose={() => setSnackbarOpen(false)}
       />
     </Paper>
   );

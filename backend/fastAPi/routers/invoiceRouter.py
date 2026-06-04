@@ -1,16 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query, status
-from typing import Optional, List
-from models import InvoiceModel,InvoiceItemModel, DeleteInvoiceModel
-from datalayer.managers import InvoiceManager
+from fastapi import APIRouter, HTTPException, Query, status,Depends
+from models import *
+from datalayer.managers import *
 from datalayer.exceptions import DataLayerException
-from datetime import datetime
-from datalayer.managers import InvoiceItemManager
 from datalayer.entities import InvoiceItem
+from utils.auth import get_current_user
 
 router = APIRouter()
 
 @router.get("/getAllInvoices", status_code=status.HTTP_200_OK)
-def getAllinvoices():
+def getAllinvoices(user=Depends(get_current_user)):
     try:
         manager = InvoiceManager()
         invoices = manager.getAll()
@@ -21,7 +19,7 @@ def getAllinvoices():
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/addInvoice", status_code=status.HTTP_201_CREATED)
-def postAddInvoice(invoice: InvoiceModel):
+def postAddInvoice(invoice: InvoiceModel,user=Depends(get_current_user)):
     try:
         if not invoice.invoiceDate:
             raise HTTPException(status_code=400, detail="invoiceDate is required")
@@ -40,7 +38,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 
 @router.get("/getInvoiceDetails", status_code=status.HTTP_200_OK)
-def getInvoiceDetails(invoiceCode: int = Query(..., description="Invoice code to fetch details")):
+def getInvoiceDetails(user=Depends(get_current_user),invoiceCode: int = Query(..., description="Invoice code to fetch details")):
     """
     Fetch invoice details along with its items.
     Returns totalAmount calculated from items.
@@ -63,10 +61,9 @@ def getInvoiceDetails(invoiceCode: int = Query(..., description="Invoice code to
                 "totalAmount": i.getTotalAmount()
             })
 
-        # Calculate totalAmount from items
         total_amount = sum(item["totalAmount"] for item in items_data)
 
-        # Prepare invoice data
+        
         invoice_data = {
             "code": invoice.getCode(),
             "customerCode": invoice.getCustomerCode(),
@@ -84,9 +81,8 @@ def getInvoiceDetails(invoiceCode: int = Query(..., description="Invoice code to
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/addInvoiceItem", status_code=status.HTTP_201_CREATED)
-def postAddInvoiceItem(item: InvoiceItemModel):
+def postAddInvoiceItem(item: InvoiceItemModel,user=Depends(get_current_user)):
     try:
-        # Server calculates amounts
         taxableAmount = item.rate * item.quantity
         totalAmount = taxableAmount + (taxableAmount * (item.sgst + item.cgst + item.igst)/100)
 

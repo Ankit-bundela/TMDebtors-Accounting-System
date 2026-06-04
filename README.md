@@ -20,7 +20,7 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 - Add, update, and remove customers and traders
 - Create and manage invoices with multiple items
 - Manage items and unit of measurement
-- Role-based user authentication
+- Role-based user authentication (Jwt)
 - Dynamic dashboard for tracking financial data
 
 
@@ -29,7 +29,7 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 - React-based responsive UI
 - FastAPI backend with modular routers
 - Oracle database integration
-- authentication (optional)
+- JWT-based authentication (optional)
 - CRUD operations for all entities
 - Alert and notification system in frontend
 - Accordion-style invoice display
@@ -38,32 +38,32 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 ## Folder Structure
 
 Debtors-Accounting/
-  src/
-    Components/
-    controller/
-  backend/
-    fastAPi/
-      main.py
-      routers/
-      models.py
-  ScreenShot/
-
-            
-            
-
-## Screenshots
-
-### Home Page
-![Home](ScreenShot/s1.jpg)
-![Dashboard](ScreenShot/s2.jpg)
-
-### Invoice Management
-![Invoice](ScreenShot/s3.jpg)
-![Item](ScreenShot/s4.jpg)
-
-### Authentication Management
-![Login](ScreenShot/s5.jpg)
-![Register](ScreenShot/s6.jpg)
+│
+├─ README.md
+├─ package.json
+├─ src/
+│  ├─ components/           # React components
+│  ├─ controler/            # React controllers
+│  ├─ style                   # CSS / Tailwind styles
+│  └─ App.js
+├─ backend/
+│  └─ fastAPi/
+│     ├─ routers/           # FastAPI routers
+│     │  ├─ authRouter.py
+│     │  ├─ customerRouter.py
+│     │  ├─ itemRouter.py
+│     │  ├─ invoiceRouter.py
+│     │  ├─ stateRouter.py
+│     │  ├─ statusRouter.py
+│     │  └─ uomRouter.py
+│     └─ datalayer/         # Database layer
+│        ├─ connector.py
+│        ├─ config.py
+│        ├─ dbconfig.xml
+│        ├─ entities.py
+│        ├─ exceptions.py
+│        └─ managers.py
+├─ ScreenShot/              # Screenshots of app
 
 ### Backend Setup (FastAPI)
 
@@ -71,11 +71,9 @@ cd backend/fastAPi
 
 # Create virtual environment
 python -m venv venv
+
 # Activate environment
 venv\Scripts\activate   # Windows
-
-source venv/bin/activate # Linux/Mac
-# Install dependencies
 
 pip install -r requirements.txt
 

@@ -1,11 +1,12 @@
-from fastapi import APIRouter,HTTPException,status
+from fastapi import APIRouter,HTTPException,status,Depends
+from utils.auth import get_current_user
 from datalayer.managers import StateManager
 from datalayer.exceptions import DataLayerException
 router=APIRouter()
 
 
 @router.get('/getStates')
-def getStates():
+def getStates(user=Depends(get_current_user)):
     try:
         manager = StateManager()
         states = manager.getAll()
@@ -23,7 +24,7 @@ def getStates():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 @router.get('/getStateByCode')
-def getStateByCode(code:int):
+def getStateByCode(code:int,user=Depends(get_current_user)):
     try:
         manager = StateManager()
         state = manager.getByCode(code)
@@ -46,7 +47,7 @@ def getStateByCode(code:int):
 
 
 @router.get("/getStateByAlphaCode")
-def getStateByAlphaCode(alphaCode: str):   
+def getStateByAlphaCode(alphaCode: str,user=Depends(get_current_user)):   
     try:
         if not alphaCode:
             raise HTTPException(

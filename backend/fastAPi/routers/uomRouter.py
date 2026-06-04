@@ -1,4 +1,5 @@
-from fastapi import APIRouter,HTTPException,status
+from fastapi import APIRouter,HTTPException,status,Depends
+from utils.auth import get_current_user
 from datalayer.managers import UnitofMeasurmentManager
 from datalayer.exceptions import DataLayerException
 import time
@@ -6,7 +7,7 @@ import time
 router=APIRouter()
 
 @router.get("/getUnitOfMeasurments",status_code=status.HTTP_200_OK)
-def getUnitOfMeasurments():
+def getUnitOfMeasurments(user=Depends(get_current_user)):
     try:
         time.sleep(3)
         manager = UnitofMeasurmentManager()
@@ -23,7 +24,7 @@ def getUnitOfMeasurments():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/getAllUOMs")
-def getAllUOMs():
+def getAllUOMs(user=Depends(get_current_user)):
     try:
         manager = UnitofMeasurmentManager()
         rows = manager.getAll()

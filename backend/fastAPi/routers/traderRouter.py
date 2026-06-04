@@ -1,4 +1,5 @@
-from fastapi import APIRouter,HTTPException,status
+from fastapi import APIRouter,HTTPException,status,Depends
+from utils.auth import get_current_user
 from models import TraderModel
 from datalayer.entities import Traders
 from datalayer.managers import TraderManager
@@ -6,7 +7,7 @@ from datalayer.exceptions import DataLayerException
 
 router=APIRouter()
 @router.get('/getTrader')
-def getTrader():
+def getTrader(user=Depends(get_current_user)):
     try:
         manager = TraderManager()
         trader = manager.getAll()
@@ -39,7 +40,7 @@ def getTrader():
 
 
 @router.post("/updateTrader")
-def postUpdateTrader(trader_data:TraderModel):
+def postUpdateTrader(trader_data:TraderModel,user=Depends(get_current_user)):
     try:
         trader = Traders(
             trader_data.code,
