@@ -1,6 +1,6 @@
 # TM Debtors Accounting System
 
-A full-stack Debtors Accounting System built with React (frontend) and FastAPI (backend) with Oracle Database integration.
+A full-stack Debtors Accounting System built with React (frontend) and FastAPI (backend) with Mysql Database integration.
 
 ## Table of Contents
 
@@ -43,8 +43,8 @@ Debtors-Accounting/
 ├─ package.json
 ├─ src/
 │  ├─ components/           # React components
-│  ├─ controler/            # React controllers
-│  ├─ style                   # CSS / Tailwind styles
+│  ├─ Pages/            # React controllers
+│  ├─                  # CSS / Tailwind styles
 │  └─ App.js
 ├─ backend/
 │  └─ fastAPi/
@@ -63,7 +63,30 @@ Debtors-Accounting/
 │        ├─ entities.py
 │        ├─ exceptions.py
 │        └─ managers.py
-├─ ScreenShot/              # Screenshots of app
+├─ ScreenShot/ 
+ # Screenshots of app
+ ## Screenshots
+
+### Dashboard
+<p align="center">
+  <img src="./ScreenShot/dashboard.png" width="700"/>
+</p>
+
+
+### Login Page
+<p align="center" >
+    <img src="./ScreenShot/Report.png" width=""700>
+</p>
+
+### Login Page
+<p align="center">
+  <img src="./ScreenShot/login.png" width="700"/>
+</p>
+
+### Register Page
+<p align="center">
+  <img src="./ScreenShot/register.png" width="700"/>
+</p>
 
 ### Backend Setup (FastAPI)
 
@@ -93,5 +116,5 @@ npm start
 
 - **Frontend:** React, Material-UI
 - **Backend:** FastAPI, Python.
-- **Database:** Oracle DB
+- **Database:** MySQl
 - **Version Control:** Git, GitHub
