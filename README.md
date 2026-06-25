@@ -34,7 +34,7 @@ TM Debtors Accounting System is designed to manage customers, traders, invoices,
 - Alert and notification system in frontend
 - Accordion-style invoice display
 
-## Folder Structure
+
 ## Folder Structure
 
 Debtors-Accounting/
@@ -64,7 +64,7 @@ Debtors-Accounting/
 │        ├─ exceptions.py
 │        └─ managers.py
 ├─ ScreenShot/ 
- # Screenshots of app
+
  ## Screenshots
 
 ### Dashboard
@@ -110,6 +110,14 @@ cd ../../
 npm install
 # Run React dev server
 npm start
+
+# 🌐 Live Demo
+
+## Frontend (React App)
+👉 https://tmdebtors-accounting-system-1.onrender.com
+
+## Backend (FastAPI)
+👉 https://tmdebtors-accounting-system.onrender.com/docs
 
 
 ## Technologies Used
