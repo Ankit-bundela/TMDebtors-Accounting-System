@@ -1,6 +1,6 @@
 # TM Debtors Accounting System
 
-A full-stack Debtors Accounting System built with React (frontend) and FastAPI (backend) with Mysql Database integration.
+A full-stack Debtors Accounting System built with React (frontend) and FastAPI (backend) with MySQl Database integration.
 
 ## Table of Contents
 
